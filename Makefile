@@ -3,6 +3,7 @@
 #
 #   make venv     create .venv and install test/requirements.txt
 #   make test     cocotb regression (this is the one that must pass)
+#   make gl       the same regression against the hardened gate level netlist
 #   make lint     verilator --lint-only -Wall, zero warnings expected
 #   make ring     ring oscillator structural testbench, plain Icarus
 #   make synth    yosys area report against the real IHP sg13g2 liberty
@@ -25,7 +26,7 @@ PY      := $(VENV)/bin/python
 PIP     := $(VENV)/bin/pip
 VENV_BIN := $(abspath $(VENV))/bin
 
-.PHONY: all venv test lint ring synth capture sta harden fpga formal ring-freq images check clean
+.PHONY: all venv test gl lint ring synth capture sta harden fpga formal ring-freq images check clean
 
 all: check
 
@@ -41,6 +42,12 @@ test: venv
 	PATH="$(VENV_BIN):$$PATH" $(MAKE) -C test
 	@! grep -q "<failure" test/results.xml || { echo "TEST FAILURES in results.xml"; exit 1; }
 	@echo "cocotb regression: all tests passed"
+
+# The same regression against a hardened netlist from `make harden`. Needs Tiny
+# Tapeout's patched Icarus, which the script unpacks under build/ rather than
+# installing; see scripts/run_gl.sh for why a stock Icarus cannot run this netlist.
+gl: venv
+	./scripts/run_gl.sh
 
 lint:
 	$(MAKE) -C test lint

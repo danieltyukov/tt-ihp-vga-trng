@@ -47,12 +47,17 @@ SIM_BUILD = sim_build/gl
 COMPILE_ARGS += -DGL_TEST
 COMPILE_ARGS += -DFUNCTIONAL
 COMPILE_ARGS += -DSIM
-# sg13g2_udp.v must come first: sg13g2_stdcell.v instantiates ihp_dff_r, ihp_mux2
-# and ihp_mux4 from it. The stock template omits it and elaboration fails with
-# 154 "Unknown module type" errors.
-VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog/sg13g2_udp.v
+# sg13g2_udp.v, when it exists, has to be read before sg13g2_stdcell.v, which
+# instantiates ihp_dff_r, ihp_mux2 and ihp_mux4 from it; without it elaboration
+# fails with 154 "Unknown module type" errors. It is a wildcard and not a plain
+# path because both PDK layouts are in the wild: the snapshot the gds action pins
+# (IHP-Open-PDK cb7daaa) still defines those UDPs inside sg13g2_stdcell.v, and
+# naming a file that does not exist is a hard error, while naming one that
+# duplicates them would be too. The stock template handles neither case.
+STDCELL_V = $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog
+VERILOG_SOURCES += $(wildcard $(STDCELL_V)/sg13g2_udp.v)
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_io/verilog/sg13g2_io.v
-VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog/sg13g2_stdcell.v
+VERILOG_SOURCES += $(STDCELL_V)/sg13g2_stdcell.v
 # this gets copied in by the GDS action workflow
 VERILOG_SOURCES += $(CURDIR)/gate_level_netlist.v
 
@@ -63,13 +68,16 @@ COMPILE_ARGS += -I$(SRC_DIR)
 VERILOG_SOURCES += $(CURDIR)/tb.v
 TOPLEVEL = tb
 
-# The gate level netlist gets a reduced module. See test/test_gl.py for why: the
-# full suite is 3.4 million pixel clocks and several of its tests check an entropy
-# path that does not exist in a netlist hardened with SIM_ENTROPY = 0.
+# The gate level run adds test_gl (netlist specific checks: the tie cells, and
+# that the ring force in tb.v really did leave the entropy path equivalent to the
+# RTL one) and then runs the same regression module against the netlist. test.py
+# reads GATES from the environment to trim the two longest tests; see the GL
+# section at the top of it for exactly what is trimmed and why.
+export GATES
 ifneq ($(GATES),yes)
 COCOTB_TEST_MODULES = test
 else
-COCOTB_TEST_MODULES = test_gl
+COCOTB_TEST_MODULES = test_gl,test
 endif
 
 # cocotb's own rules. Guarded so that lint / ring / synth still work in a shell

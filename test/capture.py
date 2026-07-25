@@ -80,7 +80,7 @@ async def capture_trng_switching(dut):
     seq = []
     for i in range(N_SWITCH):
         frame_no = model.frame
-        dut_sel = int(dut.user_project.sel_rand.value)
+        dut_sel = int(T.sel_rand(dut).value)
         assert dut_sel == model.sel_rand, (
             f"frame {i}: DUT selected pattern {dut_sel} but the model says "
             f"{model.sel_rand}, so the TRNG select path diverged"

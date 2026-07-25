@@ -116,7 +116,7 @@ async def test_reset(dut):
     assert int(dut.uo_out.value) == model2.uo_out(0), (
         "a mid frame reset must return the tile to the pixel (0,0) state"
     )
-    lfsr = int(dut.user_project.u_trng.u_white.state.value)
+    lfsr = int(T.lfsr_state(dut).value)
     assert lfsr == M.LFSR_SEED, f"LFSR must reload its seed on reset, got {lfsr:#06x}"
 
     await T.bulk_step(dut, model2, 3000)
@@ -417,7 +417,7 @@ async def test_von_neumann(dut):
     measures the bias before and after debiasing.
     """
     model = await T.reset(dut, T.ui(samp_fast=1), rct_sel=3, apt_sel=3)
-    vn = dut.user_project.u_trng.u_vn
+    vn = T.vn_probe(dut)
 
     # 00 discard, 01 emit 0, 10 emit 1, 11 discard, then a mix.
     hand = [0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1]
@@ -500,7 +500,7 @@ async def test_lfsr_sequence(dut):
     """Compare the conditioner state against the Python model step by step,
     both free running and while entropy is being injected."""
     model = await T.reset(dut, T.ui(samp_fast=1))
-    state = dut.user_project.u_trng.u_white.state
+    state = T.lfsr_state(dut)
 
     assert int(state.value) == M.LFSR_SEED, (
         f"LFSR seed must be {M.LFSR_SEED:#06x}, got {int(state.value):#06x}"
@@ -537,7 +537,7 @@ async def test_lfsr_period(dut):
     exactly there.
     """
     model = await T.reset(dut, T.ui(samp_fast=1))
-    state = dut.user_project.u_trng.u_white.state
+    state = T.lfsr_state(dut)
 
     seen = bytearray(65536)
     first = int(state.value)
@@ -689,7 +689,7 @@ async def test_health_sticky(dut):
     alternating stream, so the failure condition is provably absent and the flag
     can only still be set because it latched.
     """
-    state = dut.user_project.u_trng.u_white.state
+    state = T.lfsr_state(dut)
     model = await T.reset(dut, T.ui(samp_fast=1), rct_sel=0, apt_sel=3)
     dut.uio_in.value = T.uio(ent_bit=0, rct_sel=0, apt_sel=3)
 

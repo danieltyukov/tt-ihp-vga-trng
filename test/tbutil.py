@@ -6,6 +6,7 @@ capture loop and the output file layout without importing a module full of
 """
 
 import json
+import os
 import pathlib
 import struct
 
@@ -17,6 +18,9 @@ import model as M
 
 # 1 / 39722 ps = 25.1750 MHz, the 640x480 pixel clock.
 CLOCK_PS = 39722
+
+# Set by test/Makefile when the run is against the hardened gate level netlist.
+GATES = os.environ.get("GATES", "") == "yes"
 
 OUT = pathlib.Path(__file__).resolve().parent / "output"
 
@@ -42,6 +46,86 @@ def uio(ent_bit=0, rct_sel=3, apt_sel=3):
 UIO_RCT_FAIL = 1 << 5
 UIO_APT_FAIL = 1 << 6
 UIO_RND = 1 << 7
+
+
+# ---------------------------------------------------------------------------
+# internal probes, RTL hierarchy or flattened netlist
+# ---------------------------------------------------------------------------
+# The RTL run reaches into the module hierarchy for a handful of registers. The
+# hardened netlist is flat, so the same registers are single bit nets declared as
+# escaped identifiers that carry the old hierarchical path in their name, for
+# example `\u_trng.u_vn.out_stb `. Both forms are read through the helpers below so
+# no test has to know which one it is looking at.
+
+
+class _Bits:
+    """Read only integer view over per bit netlist handles, LSB first."""
+
+    def __init__(self, bits):
+        self._bits = bits
+
+    @property
+    def value(self):
+        n = 0
+        for i, h in enumerate(self._bits):
+            v = h.value
+            if not v.is_resolvable:
+                return v  # let the caller's int() fail loudly on x or z
+            n |= int(v) << i
+        return n
+
+
+_NETS = {}
+
+
+def net(dut, name):
+    """Handle for one flattened netlist net, looked up by its literal name.
+
+    Not by handle lookup: a name like `u_trng.u_src.g_ring_source.u_osc_a.chain[0]`
+    is one escaped identifier, but VPI's lookup by name reads the dots in it as
+    hierarchy separators and finds nothing. Scanning the children once and keying
+    them on the name the simulator reports is the only form that works for every
+    net here. The netlist has about 6900 of them, so the scan costs nothing.
+    """
+    if not _NETS:
+        for h in dut.user_project:
+            try:
+                _NETS[h._name] = h
+            except Exception:  # not every child exposes a name
+                pass
+    try:
+        return _NETS[name]
+    except KeyError:
+        raise AttributeError(
+            f"the netlist has no net named {name!r}. LibreLane derives these names "
+            "from the RTL hierarchy, so a rename means the netlist changed shape."
+        ) from None
+
+
+def lfsr_state(dut):
+    """The 16 bit conditioner state. `.value` is an int in both builds."""
+    if GATES:
+        return _Bits([net(dut, f"rnd_state[{i}]") for i in range(16)])
+    return dut.user_project.u_trng.u_white.state
+
+
+def vn_probe(dut):
+    """The debiaser's out_stb and out_bit, as an object with both attributes."""
+    if not GATES:
+        return dut.user_project.u_trng.u_vn
+
+    class _VN:
+        out_stb = net(dut, "u_trng.u_vn.out_stb")
+        out_bit = net(dut, "u_trng.u_vn.out_bit")
+
+    return _VN
+
+
+def sel_rand(dut):
+    """The TRNG chosen pattern index. `.value` is an int in both builds."""
+    if GATES:
+        return _Bits([net(dut, f"sel_rand[{i}]") for i in range(3)])
+    return dut.user_project.sel_rand
 
 
 # ---------------------------------------------------------------------------
@@ -184,6 +268,10 @@ async def capture_frame(
 # ---------------------------------------------------------------------------
 # output files consumed by scripts/make_images.py
 # ---------------------------------------------------------------------------
+# The gate level run captures the same frames and compares them against the same
+# model, but it must not write them: every image in docs/img is documented as
+# coming from the RTL regression and the capture run, and letting a second source
+# overwrite the inputs to scripts/make_images.py would quietly make that untrue.
 def out_dir(name):
     d = OUT / name
     d.mkdir(parents=True, exist_ok=True)
@@ -192,6 +280,8 @@ def out_dir(name):
 
 def write_frame(name, fb, meta, subdir="frames"):
     """Store one frame as a tiny header plus raw 6 bit colour bytes."""
+    if GATES:
+        return
     d = out_dir(subdir)
     with open(d / f"{name}.bin", "wb") as f:
         f.write(struct.pack("<HH", M.H_ACTIVE, M.V_ACTIVE))
@@ -200,5 +290,7 @@ def write_frame(name, fb, meta, subdir="frames"):
 
 
 def write_json(name, obj):
+    if GATES:
+        return
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / name).write_text(json.dumps(obj, indent=2) + "\n")

@@ -1,35 +1,34 @@
 name: gds
 
-# Hardens the tile to GDS with LibreLane and runs Tiny Tapeout's precheck, then
-# publishes the layout to GitHub Pages for the 3D viewer.
+# Hardens the tile to GDS with LibreLane, runs Tiny Tapeout's precheck, re-runs the
+# cocotb regression against the hardened gate level netlist, and publishes the
+# layout to GitHub Pages for the 3D viewer.
 #
-# These jobs run on plain ubuntu-24.04 runners with no secrets and no Tiny Tapeout
-# API access, and all three pass on this repository. What still requires Tiny
-# Tapeout is submitting to a shuttle and fabrication, which no workflow here does.
+# All four jobs run on plain ubuntu-24.04 runners with no secrets and no Tiny
+# Tapeout API access, and all four pass on this repository. What still requires
+# Tiny Tapeout is submitting to a shuttle and fabrication, which no workflow here
+# does.
 #
-# The gl_test job that the template ships with has been REMOVED, not disabled, and
-# the reason is specific to this design rather than a CI problem:
+# Note on gl_test. It ran for 1h51m and was removed once, because two things have
+# to be dealt with before a gate level run of this netlist means anything, and both
+# are specific to this design rather than to CI:
 #
-#   src/ring_osc.v is a deliberate combinational loop, and it has to survive
-#   synthesis for the TRNG to work at all, so the hardened netlist contains a
-#   five inverter and a seven inverter ring. The IHP functional cell models are
-#   zero delay (sg13g2_inv_1 is `not (Y, A);` with a 0.0 specify block), so once
-#   rst_n releases and the enable gate opens, an event driven simulator has a
-#   zero delay feedback loop and stops advancing in time. Measured locally: the
-#   netlist elaborates, uio_oe reads the correct 0b11100000 through the tie
-#   cells, and simulation runs normally while rst_n is low and the ring is gated
-#   off, then makes no further progress. On this repository the job sat
-#   in_progress for 1h51m before it was removed.
+#   1. The IHP cell models clock from the delayed_* signals their $setuphold and
+#      $recrem checks produce. Stock Icarus does not drive those and every flop
+#      holds x forever. The patched Icarus 13 this action installs does drive them.
+#      scripts/run_gl.sh unpacks the same build locally.
 #
-#   This is inherent to gate level simulation of any ring oscillator against
-#   zero delay models, not something fixable in the RTL. The synchronous logic is
-#   verified at RTL by the 11 test cocotb suite, and the ring oscillator path is
-#   verified structurally by test/tb_ring.v and by the surviving stage count
-#   check in scripts/synth_report.sh.
+#   2. src/ring_osc.v is a deliberate combinational loop and it survives synthesis,
+#      so the netlist holds a five inverter and a seven inverter ring against zero
+#      delay cell models. The simulator runs the reset phase and then stops
+#      advancing in time. test/tb.v cuts both rings with a force, which settles the
+#      sampled entropy bit to a constant 0 and makes raw_bit exactly uio_in[0], the
+#      same source the RTL regression drives. test/test_gl.py asserts that rather
+#      than assuming it, so the same test module can run against both.
 #
-#   test/Makefile still supports `make -B GATES=yes`, including a fix the stock
-#   template needs (sg13g2_udp.v has to be read before sg13g2_stdcell.v or
-#   elaboration fails with 154 unknown module errors). See README.
+# The oscillator itself is therefore not gate level verified and cannot be. It is
+# covered structurally by test/tb_ring.v and by the stage counts that
+# scripts/synth_report.sh and scripts/parse_harden.py enforce.
 on:
   push:
   workflow_dispatch:
@@ -55,6 +54,16 @@ jobs:
     steps:
       - name: Run Tiny Tapeout Precheck
         uses: TinyTapeout/tt-gds-action/precheck@ttihp26a
+
+  gl_test:
+    needs: gds
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: Gate level test on the hardened netlist
+        uses: TinyTapeout/tt-gds-action/gl_test@ttihp26a
 
   viewer:
     needs: gds
