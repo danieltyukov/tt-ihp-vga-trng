@@ -11,11 +11,21 @@ project:
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
   #
-  # 1x2, not 1x1. Yosys mapped to the real IHP sg13g2 library reports
-  # 17894.86 um2 of standard cell area (1268 cells, 142 flip-flops). One tile is
-  # 167 x 108 = 18036 um2, so a 1x1 tile would need 99.2% placement density and
-  # will not route; Librelane targets 60%. Two tiles put it at 49.6%.
-  # See docs/design.md and docs/synth/ for the full breakdown.
+  # 1x2, and the number that decides it is post route, not post synthesis. The
+  # two are far enough apart here to matter: Yosys reports 18040 um2 of mapped
+  # cell area against 18036 um2 of gross 1x1 tile area, which lands the design
+  # exactly on the boundary, and a comparison that close cannot be trusted in
+  # either direction. LibreLane hardening resolves it (docs/hardening/summary.json):
+  #
+  #   real cell area after place and route   25940.5 um2, 1767 cells
+  #   gross 1x1 tile area                    18036   um2  (167 x 108)
+  #   1x1 utilisation that would need         143.8%       arithmetically impossible
+  #   die that was actually hardened          36072   um2  (167 x 216) = 1x2
+  #   1x2 utilisation                          71.9%       routed, DRC and LVS clean
+  #
+  # The 7900 um2 between synthesis and route is mostly hold fixing: 338 timing
+  # repair buffers, 5846 um2. scripts/check_area.py re-derives this and fails if
+  # the tiles field stops following the measurement.
   tiles: "1x2"
 
   top_module:  "tt_um_danieltyukov_vga_trng"
