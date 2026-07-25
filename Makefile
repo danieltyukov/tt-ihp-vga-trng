@@ -9,6 +9,7 @@
 #   make capture  64 further model-verified frames for the animated images
 #   make sta      OpenSTA timing closure across three real IHP corners
 #   make harden   LibreLane hardening to GDS, DRC and LVS signoff, layout render
+#   make fpga     yosys + nextpnr-ice40 + icepack for an ICE40UP5K
 #   make ring-freq ring oscillator frequency from the Liberty delay tables
 #   make images   regenerate every PNG and GIF in docs/img from sim output
 #   make check    lint + ring + test + synth
@@ -23,7 +24,7 @@ PY      := $(VENV)/bin/python
 PIP     := $(VENV)/bin/pip
 VENV_BIN := $(abspath $(VENV))/bin
 
-.PHONY: all venv test lint ring synth capture sta harden ring-freq images check clean
+.PHONY: all venv test lint ring synth capture sta harden fpga ring-freq images check clean
 
 all: check
 
@@ -59,6 +60,11 @@ sta:
 # About 25 minutes. Writes docs/hardening/ and docs/img/layout.png.
 harden:
 	./scripts/harden.sh
+
+# yosys + nextpnr-ice40 + icepack + icetime for the device Tiny Tapeout's FPGA
+# emulator uses. Validates the ice40 flow, not the fpga GitHub workflow.
+fpga:
+	./scripts/run_fpga.sh
 
 ring-freq:
 	python3 scripts/ring_freq.py

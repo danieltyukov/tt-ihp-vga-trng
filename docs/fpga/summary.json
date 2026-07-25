@@ -1,0 +1,90 @@
+{
+  "device": "up5k",
+  "package": "sg48",
+  "target_mhz": 25.175,
+  "achieved_mhz": 33.27,
+  "margin": 1.322,
+  "clk_to_pad_ns": 42.56,
+  "pixel_period_ns": 39.7219,
+  "icetime_longest_path_ns": 44.42,
+  "utilisation": {
+    "ICESTORM_LC": {
+      "used": 678,
+      "available": 5280,
+      "percent": 12
+    },
+    "ICESTORM_RAM": {
+      "used": 0,
+      "available": 30,
+      "percent": 0
+    },
+    "SB_IO": {
+      "used": 26,
+      "available": 96,
+      "percent": 27
+    },
+    "SB_GB": {
+      "used": 6,
+      "available": 8,
+      "percent": 75
+    },
+    "ICESTORM_PLL": {
+      "used": 0,
+      "available": 1,
+      "percent": 0
+    },
+    "SB_WARMBOOT": {
+      "used": 0,
+      "available": 1,
+      "percent": 0
+    },
+    "ICESTORM_DSP": {
+      "used": 0,
+      "available": 8,
+      "percent": 0
+    },
+    "ICESTORM_HFOSC": {
+      "used": 0,
+      "available": 1,
+      "percent": 0
+    },
+    "ICESTORM_LFOSC": {
+      "used": 0,
+      "available": 1,
+      "percent": 0
+    },
+    "SB_I2C": {
+      "used": 0,
+      "available": 2,
+      "percent": 0
+    },
+    "SB_SPI": {
+      "used": 0,
+      "available": 2,
+      "percent": 0
+    },
+    "IO_I3C": {
+      "used": 0,
+      "available": 2,
+      "percent": 0
+    },
+    "SB_LEDDA_IP": {
+      "used": 0,
+      "available": 1,
+      "percent": 0
+    },
+    "SB_RGBA_DRV": {
+      "used": 0,
+      "available": 1,
+      "percent": 0
+    },
+    "ICESTORM_SPRAM": {
+      "used": 0,
+      "available": 4,
+      "percent": 0
+    }
+  },
+  "synth_cells": {},
+  "bitstream_bytes": 104090,
+  "note": "Validates that the RTL is implementable on the device Tiny Tapeout's FPGA emulator uses, fits it, and meets the pixel clock. Does NOT validate the fpga GitHub workflow, which needs Tiny Tapeout's container and board harness. Built through fpga/fpga_top.v with SIM_ENTROPY=1, because the ring oscillators are combinational loops that synth_ice40 will not build, and because an FPGA cannot host a usable ring oscillator TRNG anyway. achieved_mhz is the register to register frequency, which is what decides whether the design runs. clk_to_pad_ns is the unconstrained clock to output pad delay, which exceeds one pixel period here; on a real board that path needs pin constraints and probably an output register stage."
+}

@@ -388,6 +388,7 @@ make synth    # Yosys area report against the real IHP liberty (needs network on
 make capture  # 64 further model-verified frames for the animated images, ~16 min
 make sta      # OpenSTA timing closure across three real IHP corners
 make harden   # LibreLane hardening to GDS, DRC and LVS signoff, layout render
+make fpga     # yosys + nextpnr-ice40 + icepack for an ICE40UP5K
 make ring-freq # ring oscillator frequency from the Liberty delay tables
 make images   # regenerate every PNG and GIF in docs/img from simulation output
 make check    # lint + ring + test + synth
@@ -445,7 +446,7 @@ Plus `test/tb_ring.v` with 12 structural checks on the ring oscillator path, and
 | `test.yaml` | no. apt `iverilog`, `verilator`, `yosys` plus pip | yes, all four jobs run locally |
 | `gds.yaml` | the workflow does. The hardening it wraps does not | the flow yes, the workflow no |
 | `docs.yaml` | yes. `TinyTapeout/tt-gds-action/docs` | no |
-| `fpga.yaml` | yes. their ice40 toolchain container. Off by default, as in the template | no |
+| `fpga.yaml` | the workflow does. The ice40 flow it wraps does not | the flow yes, the workflow no |
 
 Only `test.yaml` has a badge, because it is the only workflow that can be claimed
 to pass. `gds.yaml`, `docs.yaml` and `fpga.yaml` are the template's own,
@@ -460,9 +461,42 @@ same version on the same PDK, and the results are in
 pass DRC and LVS. It has not passed Tiny Tapeout's precheck, it has not been
 integrated into their harness, and it is not taped out.
 
-Anyone enabling `fpga.yaml` should build with `SIM_ENTROPY = 1`: Yosys' ice40
-target will not synthesise a combinational loop, so the ring oscillators have to
-be replaced by the `ENT_IN` pin.
+### The FPGA path, also validated locally
+
+`make fpga` runs yosys `synth_ice40`, `nextpnr-ice40`, `icepack` and `icetime` for
+an **ICE40UP5K in sg48**, the device Tiny Tapeout's FPGA emulator uses:
+
+```
+ICESTORM_LC     678 / 5280   12%
+SB_IO            26 /   96   27%
+SB_GB             6 /    8   75%
+BRAM, DSP, PLL, SPRAM        0%      (no framebuffer, so nothing to store)
+bitstream                104090 bytes
+
+register to register   33.27 MHz against 25.175 MHz, 1.32x  PASS
+clock to output pad     42.56 ns against a 39.72 ns pixel period, over budget
+```
+
+The register to register frequency is what decides whether the design runs, and
+it passes. The clock to output pad path does not fit inside one pixel period, and
+that is reported rather than left out: there is no PCF and no output delay
+constraint in this run, because inventing pin numbers for a board nobody has would
+be worse than not constraining them. On a real board that path needs real pin
+constraints and probably an output register stage. It does not affect the ASIC,
+where those ports go to the Tiny Tapeout harness rather than to pads, and where
+the hardened run closes with 17.56 ns of slack.
+
+This is built through [`fpga/fpga_top.v`](fpga/fpga_top.v), a wrapper that exists
+for two real reasons. The raw tile has 43 ports and sg48 has 39 usable I/O, and
+`synth_ice40` will not build a combinational loop, so the tile is instantiated
+with `SIM_ENTROPY = 1` and entropy comes from the `ENT_IN` pin. That is the right
+choice on an FPGA anyway: routed LUTs cannot host a usable ring oscillator TRNG,
+so entropy has to come from outside, and whatever you feed that pin is not a TRNG.
+
+No `fpga` badge is added, and that is deliberate. A badge points at the workflow,
+`fpga.yaml` is `branches: none` as in the template so it never runs on push, and a
+badge for a workflow that never runs would say nothing true. The evidence is the
+numbers above and [docs/fpga/](docs/fpga/).
 
 ## Repository layout
 
@@ -491,11 +525,20 @@ scripts/
   parse_synth.py                  Yosys text to docs/synth/area.json
   frames.py                       read the raw frame dumps
   make_images.py                  regenerate every raster image in docs/img
+hardening/
+  config.json                     LibreLane config for the local hardening run
+  constraints.sdc                 real timing constraints, not the fallback
+fpga/
+  fpga_top.v                      iCE40 demo wrapper, SIM_ENTROPY=1
 docs/
   info.md                         shuttle datasheet
   design.md                       area budget, pattern costs, entropy design
-  synth/                          committed Yosys reports
-  img/                            hand written SVGs and generated PNGs and GIFs
+  synth/                          committed Yosys area reports
+  sta/                            OpenSTA per corner reports, ring frequency
+  hardening/                      LibreLane metrics and signoff
+  fpga/                           iCE40 utilisation and timing
+  img/                            hand written SVGs, generated PNGs and GIFs,
+                                  and the routed layout render
 ```
 
 ## Honesty notes
@@ -519,6 +562,10 @@ Collected in one place so none of it has to be dug out of the prose:
   submission, it did not pass Tiny Tapeout's precheck, and it is not taped out.
 - The ring oscillator frequency table is a hand calculation from Liberty delay
   tables with no interconnect. Real rings will be slower. It is not a measurement.
+- The FPGA build is unconstrained: no PCF, no output delay constraint. The
+  register to register frequency passes at 1.32x, the clock to output pad path
+  does not fit a pixel period, and both are reported. It validates the ice40 flow,
+  not the `fpga` workflow and not any specific board.
 - One `max_fanout` design rule violation remains, on the clock tree root buffer.
   It is documented rather than papered over, together with what was tried.
 - `make harden` fixes the die at the 1x2 tile footprint, which is the right

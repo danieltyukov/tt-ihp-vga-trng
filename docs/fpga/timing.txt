@@ -1,0 +1,113 @@
+// Reading input .asc file..
+// Reading 5k chipdb file..
+// Creating timing netlist..
+
+icetime topological timing analysis report
+==========================================
+
+Info: max_span_hack is enabled: estimate is conservative.
+
+Report for critical path:
+-------------------------
+
+        lc40_7_17_2 (LogicCell40) [clk] -> lcout: 1.491 ns
+     1.491 ns net_28197 (u_tile.frame_cnt[2])
+        odrv_7_17_28197_28351 (Odrv4) I -> O: 0.649 ns
+        t1237 (Span4Mux_v4) I -> O: 0.649 ns
+        t1236 (LocalMux) I -> O: 1.099 ns
+        inmux_7_23_32545_32610 (InMux) I -> O: 0.662 ns
+        lc40_7_23_6 (LogicCell40) in0 -> lcout: 1.285 ns
+     5.835 ns net_28813 (u_tile.u_pat.u_p4.u_s1.phase_SB_LUT4_O_4_I2[0])
+        t1613 (LocalMux) I -> O: 1.099 ns
+        inmux_7_23_32571_32575 (InMux) I -> O: 0.662 ns
+        lc40_7_23_0 (LogicCell40) in1 -> carryout: 0.675 ns
+     8.272 ns net_32573 (u_tile.u_pat.u_p4.u_s1.phase_SB_LUT4_O_I3[1])
+        lc40_7_23_1 (LogicCell40) carryin -> carryout: 0.278 ns
+     8.550 ns net_32579 (u_tile.u_pat.u_p4.u_s1.phase_SB_LUT4_O_I3[2])
+        inmux_7_23_32579_32589 (InMux) I -> O: 0.662 ns
+        lc40_7_23_2 (LogicCell40) in3 -> lcout: 0.874 ns
+    10.086 ns net_28809 (u_tile.u_pat.u_p4.ph1[2])
+        odrv_7_23_28809_28963 (Odrv4) I -> O: 0.649 ns
+        t1621 (LocalMux) I -> O: 1.099 ns
+        inmux_7_25_32791_32856 (InMux) I -> O: 0.662 ns
+        lc40_7_25_6 (LogicCell40) in0 -> lcout: 1.285 ns
+    13.782 ns net_29017 (u_tile.u_pat.u_p4.s1_SB_LUT4_O_3_I2[0])
+        t1641 (LocalMux) I -> O: 1.099 ns
+        inmux_7_25_32817_32845 (InMux) I -> O: 0.662 ns
+        lc40_7_25_4 (LogicCell40) in1 -> lcout: 1.232 ns
+    16.775 ns net_29015 (u_tile.u_pat.u_p4.s1[0])
+        t1639 (LocalMux) I -> O: 1.099 ns
+        inmux_8_24_36523_36529 (InMux) I -> O: 0.662 ns
+        lc40_8_24_0 (LogicCell40) in1 -> carryout: 0.675 ns
+    19.212 ns net_36527 (u_tile.u_pat.u_p4.sum_SB_LUT4_O_I2[1])
+        lc40_8_24_1 (LogicCell40) carryin -> carryout: 0.278 ns
+    19.490 ns net_36533 (u_tile.u_pat.u_p4.sum_SB_LUT4_O_I2[2])
+        lc40_8_24_2 (LogicCell40) carryin -> carryout: 0.278 ns
+    19.768 ns net_36539 (u_tile.u_pat.u_p4.sum_SB_LUT4_O_I2[3])
+        lc40_8_24_3 (LogicCell40) carryin -> carryout: 0.278 ns
+    20.046 ns net_36545 ($nextpnr_ICESTORM_LC_22$I3)
+        inmux_8_24_36545_36555 (InMux) I -> O: 0.662 ns
+        lc40_8_24_4 (LogicCell40) in3 -> lcout: 0.874 ns
+    21.583 ns net_32627 (u_tile.u_pat.u_p4.sum_SB_LUT4_O_2_I2[4])
+        odrv_8_24_32627_36599 (Odrv4) I -> O: 0.649 ns
+        t1779 (LocalMux) I -> O: 1.099 ns
+        inmux_9_24_40339_40385 (InMux) I -> O: 0.662 ns
+        t462 (CascadeMux) I -> O: 0.000 ns
+        lc40_9_24_4 (LogicCell40) in2 -> carryout: 0.609 ns
+    24.602 ns net_40382 ($nextpnr_ICESTORM_LC_18$I3)
+        inmux_9_24_40382_40392 (InMux) I -> O: 0.662 ns
+        lc40_9_24_5 (LogicCell40) in3 -> lcout: 0.874 ns
+    26.139 ns net_36459 (u_tile.u_pat.rgb4[5])
+        odrv_9_24_36459_40073 (Odrv4) I -> O: 0.649 ns
+        t2005 (LocalMux) I -> O: 1.099 ns
+        inmux_9_22_40099_40138 (InMux) I -> O: 0.662 ns
+        lc40_9_22_4 (LogicCell40) in1 -> lcout: 1.232 ns
+    29.781 ns net_36212 (u_tile.u_pat.u_p5.col_SB_DFFESR_Q_D_SB_LUT4_I0_O_SB_LUT4_O_I0[3])
+        t1977 (LocalMux) I -> O: 1.099 ns
+        inmux_8_22_36277_36307 (InMux) I -> O: 0.662 ns
+        lc40_8_22_4 (LogicCell40) in1 -> lcout: 1.232 ns
+    32.774 ns net_32381 (u_tile.u_pat.u_p5.col_SB_DFFESR_Q_D_SB_LUT4_I0_O[2])
+        t1759 (LocalMux) I -> O: 1.099 ns
+        inmux_8_22_36269_36294 (InMux) I -> O: 0.662 ns
+        lc40_8_22_2 (LogicCell40) in0 -> lcout: 1.285 ns
+    35.821 ns net_32379 (u_tile.u_sync.vsync_n_SB_LUT4_O_I1_SB_LUT4_O_1_I3_SB_LUT4_I3_O_SB_LUT4_I1_O[2])
+        odrv_8_22_32379_32523 (Odrv4) I -> O: 0.649 ns
+        t1761 (LocalMux) I -> O: 1.099 ns
+        inmux_9_22_40097_40157 (InMux) I -> O: 0.662 ns
+        t450 (CascadeMux) I -> O: 0.000 ns
+        lc40_9_22_7 (LogicCell40) in2 -> lcout: 1.205 ns
+    39.436 ns net_36215 (vga[0]$SB_IO_OUT)
+        odrv_9_22_36215_36365 (Odrv4) I -> O: 0.649 ns
+        t1984 (Span4Mux_h4) I -> O: 0.543 ns
+        t1983 (Span4Mux_h4) I -> O: 0.543 ns
+        t1982 (Span4Mux_v4) I -> O: 0.649 ns
+        t1981 (Span4Mux_v4) I -> O: 0.649 ns
+        t1980 (LocalMux) I -> O: 1.099 ns
+        inmux_17_31_71850_71837 (IoInMux) I -> O: 0.662 ns
+    44.231 ns net_71837 (vga[0]$SB_IO_OUT)
+        pre_io_17_31_0 (PRE_IO) DOUT0 [setup]: 0.187 ns
+    44.418 ns io_pad_17_31_0_din
+
+Resolvable net names on path:
+     1.491 ns ..  4.550 ns u_tile.frame_cnt[2]
+     5.835 ns ..  7.596 ns u_tile.u_pat.u_p4.u_s1.phase_SB_LUT4_O_4_I2[0]
+     8.272 ns ..  8.272 ns u_tile.u_pat.u_p4.u_s1.phase_SB_LUT4_O_I3[1]
+     8.550 ns ..  9.212 ns u_tile.u_pat.u_p4.u_s1.phase_SB_LUT4_O_I3[2]
+    10.086 ns .. 12.497 ns u_tile.u_pat.u_p4.ph1[2]
+    13.782 ns .. 15.543 ns u_tile.u_pat.u_p4.s1_SB_LUT4_O_3_I2[0]
+    16.775 ns .. 18.536 ns u_tile.u_pat.u_p4.s1[0]
+    19.212 ns .. 19.212 ns u_tile.u_pat.u_p4.sum_SB_LUT4_O_I2[1]
+    19.490 ns .. 19.490 ns u_tile.u_pat.u_p4.sum_SB_LUT4_O_I2[2]
+    19.768 ns .. 19.768 ns u_tile.u_pat.u_p4.sum_SB_LUT4_O_I2[3]
+    20.046 ns .. 20.709 ns $nextpnr_ICESTORM_LC_22$I3
+    21.583 ns .. 23.993 ns u_tile.u_pat.u_p4.sum_SB_LUT4_O_2_I2[4]
+    24.602 ns .. 25.265 ns $nextpnr_ICESTORM_LC_18$I3
+    26.139 ns .. 28.549 ns u_tile.u_pat.rgb4[5]
+    29.781 ns .. 31.543 ns u_tile.u_pat.u_p5.col_SB_DFFESR_Q_D_SB_LUT4_I0_O_SB_LUT4_O_I0[3]
+    32.774 ns .. 34.536 ns u_tile.u_pat.u_p5.col_SB_DFFESR_Q_D_SB_LUT4_I0_O[2]
+    35.821 ns .. 38.231 ns u_tile.u_sync.vsync_n_SB_LUT4_O_I1_SB_LUT4_O_1_I3_SB_LUT4_I3_O_SB_LUT4_I1_O[2]
+    39.436 ns .. 44.231 ns vga[0]$SB_IO_OUT
+
+Total number of logic levels: 18
+Total path delay: 44.42 ns (22.51 MHz)
+
