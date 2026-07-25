@@ -14,11 +14,18 @@ Two sequences are produced:
 
   anim/     32 consecutive frames of the ripple pattern, for the animation GIF
   switch/   32 frames with RAND_EN set and FAST_SW set, so the TRNG reselects
-            the pattern every 8 frames. Entropy is driven into uio_in[0] during
-            vertical blanking, which is where it has to arrive to influence the
-            reselect at the frame boundary. The pattern the DUT chose is read
-            back from sel_rand and asserted against the model, then used as the
-            expected pattern for the pixel comparison.
+            the pattern every 8 frames. Entropy is driven into uio_in[0] on every
+            clock. The pattern the DUT chose is read back from sel_rand and
+            asserted against the model, then used as the expected pattern for the
+            pixel comparison.
+
+            Entropy has to be driven on every clock, not just during blanking.
+            Holding the pin static across the visible region is a run of hundreds
+            of thousands of identical raw samples, the repetition count test
+            latches, and a latched health failure inhibits the reselect by design.
+            The first version of this capture did exactly that and produced 32
+            frames of pattern 0, which is the design working correctly and the
+            testbench being wrong.
 """
 
 import random
@@ -77,6 +84,11 @@ async def capture_trng_switching(dut):
         assert dut_sel == model.sel_rand, (
             f"frame {i}: DUT selected pattern {dut_sel} but the model says "
             f"{model.sel_rand}, so the TRNG select path diverged"
+        )
+        flags = int(dut.uio_out.value)
+        assert not (flags & (T.UIO_RCT_FAIL | T.UIO_APT_FAIL)), (
+            f"frame {i}: a health test has latched, which inhibits the reselect by "
+            "design. The entropy stream driven into ENT_IN is not healthy."
         )
         fb, mism = await T.capture_frame(
             dut,

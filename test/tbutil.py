@@ -54,6 +54,11 @@ async def reset(dut, ui_val=0, uio_val=None, rct_sel=3, apt_sel=3):
     reset values and the next rising edge is the first real step. The returned
     model is therefore in exactly the DUT's state and one call to model.step()
     corresponds to one rising edge.
+
+    The model's standing control levels are decoded from the same ui_val that is
+    driven onto the pins, so the two cannot disagree about FREEZE, FAST_SW or
+    SAMP_FAST. Getting that wrong once cost a 10 minute capture run: the DUT had
+    FAST_SW set and reselected every 8 frames while the model waited for 64.
     """
     if uio_val is None:
         uio_val = uio(0, rct_sel, apt_sel)
@@ -65,7 +70,13 @@ async def reset(dut, ui_val=0, uio_val=None, rct_sel=3, apt_sel=3):
     await ClockCycles(dut.clk, 8)
     await FallingEdge(dut.clk)
     dut.rst_n.value = 1
-    return M.Tile(rct_sel=rct_sel, apt_sel=apt_sel)
+    return M.Tile(
+        rct_sel=rct_sel,
+        apt_sel=apt_sel,
+        fast_sw=(ui_val >> 5) & 1,
+        freeze=(ui_val >> 6) & 1,
+        sample_fast=(ui_val >> 7) & 1,
+    )
 
 
 async def settle():
@@ -118,57 +129,54 @@ async def capture_frame(
     When check is true every active pixel and a sample of the blanking is
     compared against the model.
 
-    ext_fn, if given, is called once per clock during the first 400 clocks of
-    each vertical blanking line and must return the entropy bit to drive on
-    uio_in[0]. That is where entropy gets stirred into the conditioner for the
-    TRNG driven switching capture: the reselect happens at the frame boundary,
-    so the bits have to arrive during vertical blanking to matter, and driving
-    them there costs nothing in the visible region.
+    ext_fn, if given, is called once per clock for the whole frame and must return
+    the entropy bit to drive on uio_in[0]. It has to be every clock, not just
+    during blanking: holding the pin static for the length of the visible region
+    is a run of hundreds of thousands of identical samples, which trips the
+    repetition count test, and a latched health failure inhibits the random
+    pattern reselect by design. Driving continuously costs about 35% more
+    simulation time and is what silicon would actually see.
     """
     assert model.x == 0 and model.y == 0, "capture_frame must start at (0, 0)"
     fb = bytearray(M.H_ACTIVE * M.V_ACTIVE)
     mism = []
 
+    def record():
+        got = int(dut.uo_out.value)
+        if check:
+            exp = model.uo_out(sel)
+            if got != exp and len(mism) < max_report:
+                mism.append((model.x, model.y, model.frame, got, exp))
+        return got
+
+    async def advance(n):
+        """n clocks, driving entropy every clock if ext_fn was given."""
+        if ext_fn is None:
+            await bulk_step(dut, model, n, **kw)
+            return
+        for _ in range(n):
+            bit = ext_fn()
+            dut.uio_in.value = uio(ent_bit=bit, rct_sel=rct_sel, apt_sel=apt_sel)
+            await step(dut, model, ext_bit=bit, **kw)
+
     for line in range(M.V_TOTAL):
         if line < M.V_ACTIVE:
             base = line * M.H_ACTIVE
             for px in range(M.H_ACTIVE):
-                got = int(dut.uo_out.value)
-                if check:
-                    exp = model.uo_out(sel)
-                    if got != exp and len(mism) < max_report:
-                        mism.append((model.x, model.y, model.frame, got, exp))
-                _, _, r, g, b = M.unpack_uo(got)
+                _, _, r, g, b = M.unpack_uo(record())
                 fb[base + px] = (r << 4) | (g << 2) | b
-                await step(dut, model, **kw)
-            # horizontal blanking: check the midpoint of each porch and the
-            # sync pulse, then skip the rest in bulk
+                await advance(1)
+            # horizontal blanking: check the midpoint of each porch and of the
+            # sync pulse, then cover the rest without reading
             for chunk in (8, 40, 40, 40, 32):
-                await bulk_step(dut, model, chunk, **kw)
-                if check:
-                    got = int(dut.uo_out.value)
-                    exp = model.uo_out(sel)
-                    if got != exp and len(mism) < max_report:
-                        mism.append((model.x, model.y, model.frame, got, exp))
-            await bulk_step(dut, model, M.H_TOTAL - M.H_ACTIVE - 160, **kw)
+                await advance(chunk)
+                record()
+            await advance(M.H_TOTAL - M.H_ACTIVE - 160)
         else:
-            # vertical blanking: one check per line, rest in bulk
-            if ext_fn is None:
-                await bulk_step(dut, model, 400, **kw)
-            else:
-                for _ in range(400):
-                    bit = ext_fn()
-                    dut.uio_in.value = uio(ent_bit=bit, rct_sel=rct_sel, apt_sel=apt_sel)
-                    await step(dut, model, ext_bit=bit, **kw)
-                # hand the pin back to 0 so the bulk steps below, which tell the
-                # model ext_bit is 0, stay in lockstep with the DUT
-                dut.uio_in.value = uio(ent_bit=0, rct_sel=rct_sel, apt_sel=apt_sel)
-            if check:
-                got = int(dut.uo_out.value)
-                exp = model.uo_out(sel)
-                if got != exp and len(mism) < max_report:
-                    mism.append((model.x, model.y, model.frame, got, exp))
-            await bulk_step(dut, model, M.H_TOTAL - 400, **kw)
+            # vertical blanking: one check per line
+            await advance(400)
+            record()
+            await advance(M.H_TOTAL - 400)
 
     return fb, mism
 

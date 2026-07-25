@@ -380,7 +380,7 @@ class Tile:
     sampling mid-cycle would.
     """
 
-    def __init__(self, rct_sel=3, apt_sel=3):
+    def __init__(self, rct_sel=3, apt_sel=3, fast_sw=0, freeze=0, sample_fast=0):
         self.x = 0
         self.y = 0
         self.frame = 0
@@ -391,6 +391,17 @@ class Tile:
         self.lfsr = Lfsr()
         self.vn = VonNeumann()
         self.health = HealthMonitor(rct_sel, apt_sel)
+        # Standing control input levels, mirroring what the testbench drove on
+        # ui_in. step() takes the same names as overrides for inputs that are
+        # toggled during a test. Holding them here rather than requiring every
+        # step() call to repeat them is what stops the model and the DUT quietly
+        # disagreeing about, say, whether FAST_SW is set.
+        self.ctrl = {
+            "fast_sw": fast_sw,
+            "freeze": freeze,
+            "sample_fast": sample_fast,
+            "health_clr": 0,
+        }
 
     # -- combinational views of the current state --------------------------
     @property
@@ -447,7 +458,20 @@ class Tile:
         return self.sel_rand if rand_en else sel_manual
 
     # -- one rising clock edge ---------------------------------------------
-    def step(self, ext_bit=0, sample_fast=0, freeze=0, health_clr=0, fast_sw=0):
+    def step(self, ext_bit=0, **override):
+        """Advance one rising clock edge.
+
+        Control inputs default to the standing levels in self.ctrl and can be
+        overridden per call: step(health_clr=1) for a pulse, for example.
+        """
+        bad = set(override) - set(self.ctrl)
+        assert not bad, f"unknown control input(s) {sorted(bad)}"
+        ctrl = {**self.ctrl, **override}
+        sample_fast = ctrl["sample_fast"]
+        freeze = ctrl["freeze"]
+        health_clr = ctrl["health_clr"]
+        fast_sw = ctrl["fast_sw"]
+
         raw_stb = 1 if (sample_fast or self.div == 7) else 0
         raw_bit = ext_bit & 1  # SIM_ENTROPY = 1: the oscillator term is 0
 

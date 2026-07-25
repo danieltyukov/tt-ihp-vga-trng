@@ -121,17 +121,13 @@ def contact_sheet():
         x = pad + cx * (tw + pad)
         y = pad + cy * (th + label_h + pad)
         sheet.paste(F.to_image(name, scale=2), (x, y))
-        meta = F.meta(name)
+        # a thin outline, or the white SMPTE bar and the box's white border
+        # disappear into the page
+        draw.rectangle([x - 1, y - 1, x + tw, y + th], outline=(140, 150, 160), width=1)
         draw.text((x, y + th + 5), label, fill=(28, 33, 40), font=fnt)
         draw.text(
-            (x, y + th + 5),
-            label,
-            fill=(28, 33, 40),
-            font=fnt,
-        )
-        draw.text(
             (x + tw - 74, y + th + 6),
-            f"frame {meta.get('frame', '?')}",
+            f"frame {F.meta(name).get('frame', '?')}",
             fill=(90, 100, 110),
             font=font(12),
         )
@@ -184,31 +180,42 @@ def plot_bias_over_time(stats):
     fig, ax = plt.subplots(figsize=(8.4, 3.4), dpi=140)
     style(ax)
     x = [i * win for i in range(len(series))]
+    overall = stats["bias"]
+    bound = stats["bias_bound"]
+    # Two sigma for a single window, not the overall bound. A 4096 bit window has
+    # a standard error of 0.5/sqrt(4096) = 0.0078, so window excursions of one or
+    # two hundredths are expected and say nothing about the overall figure.
+    sigma = 0.5 / (win ** 0.5)
+    ax.axhspan(-2 * sigma, 2 * sigma, color=GOOD, alpha=0.10)
+    ax.axhline(2 * sigma, color=GOOD, linewidth=1, linestyle="--")
+    ax.axhline(-2 * sigma, color=GOOD, linewidth=1, linestyle="--")
     ax.plot(x, series, color=ACCENT, linewidth=1.4)
     ax.axhline(0, color=INK, linewidth=1)
-    bound = stats["bias_bound"]
-    ax.axhspan(-bound, bound, color=GOOD, alpha=0.10)
-    ax.axhline(bound, color=GOOD, linewidth=1, linestyle="--")
-    ax.axhline(-bound, color=GOOD, linewidth=1, linestyle="--")
-    overall = stats["bias"]
-    ax.axhline(overall, color=ACCENT2, linewidth=1.2, linestyle=":")
+    ax.axhline(overall, color=ACCENT2, linewidth=1.6, linestyle=":")
+    span = max(max(abs(v) for v in series), 2 * sigma)
+    ax.set_ylim(-span * 1.75, span * 1.3)
     ax.set_xlabel(f"output bit index (window = {win} bits)")
     ax.set_ylabel("bias, P(1) - 0.5")
     ax.set_title(
         f"Conditioned output bias over {stats['n_bits']} bits\n"
-        f"overall {overall:+.5f}, asserted within {bound}",
+        f"overall {overall:+.5f}, asserted within +/-{bound}",
         fontsize=11,
         color=INK,
     )
     ax.legend(
         [
             plt.Line2D([], [], color=ACCENT, lw=1.4),
-            plt.Line2D([], [], color=ACCENT2, lw=1.2, ls=":"),
+            plt.Line2D([], [], color=ACCENT2, lw=1.6, ls=":"),
             plt.Line2D([], [], color=GOOD, lw=1, ls="--"),
         ],
-        [f"per {win} bit window", f"overall {overall:+.5f}", f"assertion bound +/-{bound}"],
+        [
+            f"per {win} bit window",
+            f"overall {overall:+.5f}, assertion bound +/-{bound}",
+            f"+/-2 sigma for one {win} bit window ({2 * sigma:.4f})",
+        ],
         fontsize=8,
         frameon=False,
+        loc="lower left",
     )
     fig.tight_layout()
     path = IMG / "trng_bias.png"
@@ -229,6 +236,7 @@ def plot_runs(stats):
     ax.plot(ks, ideal, color=BAD, linewidth=1.6, marker="o", markersize=3.2,
             label="ideal fair source, total * 2^-k")
     ax.set_yscale("log")
+    ax.set_xticks(ks)
     ax.set_xlabel("run length in bits")
     ax.set_ylabel("number of runs (log scale)")
     ax.set_title(
@@ -370,11 +378,11 @@ def plot_area(area):
             label=f"placeable at {tile['target_density']*100:.0f}% density")
     ax2.axhline(total, color=BAD, linewidth=2)
     ax2.annotate(
-        f"this design\n{total:.0f} um2",
-        xy=(0.5, total),
-        xytext=(0, 10),
+        f"this design, {total:.0f} um2",
+        xy=(-0.42, total),
+        xytext=(0, 6),
         textcoords="offset points",
-        ha="center",
+        ha="left",
         fontsize=9.5,
         color=BAD,
     )

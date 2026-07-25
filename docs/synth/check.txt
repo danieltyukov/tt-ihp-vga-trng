@@ -1,13 +1,20 @@
 hierarchy -top tt_um_danieltyukov_vga_trng -check
   passed: every instantiated module is defined, no blackboxes.
-  no blackbox references.
 
-combinational loops reported by 'check':
-  none reported
-  Every loop reported above is inside ring_osc, which is a ring
-  oscillator and is supposed to be a cycle. Loops elsewhere would be
-  a bug; grep the raw log for 'ring_osc' to confirm.
-  ring_osc mentions in loop log: 47
+check pass (run after flatten):
+  Found and reported 0 problems.
+  Note on the ring oscillators. They are genuine combinational cycles,
+  but each stage is its own (* keep_hierarchy *) module, so no single
+  module contains a cycle and neither 'check' nor 'abc' reports a loop.
+  The cycle exists only across module boundaries. Static timing in the
+  physical flow works on the fully flattened netlist and will report it,
+  which is expected: the ring is not on the clock tree and its only
+  consumer is the synchroniser in entropy_source.v.
+
+ring oscillator stage survival (5 stage + 7 stage = 12 cells expected):
+  ring_inv instances:  10
+  ring_gate instances: 2
+  passed: all 12 stages survived mapping.
 
 inferred latch check (any $_DLATCH_ / latch cell below is a bug):
-  none: all sequential cells are sg13g2_dfrbpq_1 edge triggered flops
+  none: all 142 sequential cells are sg13g2_dfrbpq_1 edge triggered flops

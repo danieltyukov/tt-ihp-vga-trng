@@ -6,7 +6,8 @@
 #   make lint     verilator --lint-only -Wall, zero warnings expected
 #   make ring     ring oscillator structural testbench, plain Icarus
 #   make synth    yosys area report against the real IHP sg13g2 liberty
-#   make images   regenerate every PNG, GIF and SVG in docs/img from sim output
+#   make capture  64 further model-verified frames for the animated images
+#   make images   regenerate every PNG and GIF in docs/img from sim output
 #   make check    lint + ring + test + synth
 #   make clean
 
@@ -15,7 +16,7 @@ PY      := $(VENV)/bin/python
 PIP     := $(VENV)/bin/pip
 VENV_BIN := $(abspath $(VENV))/bin
 
-.PHONY: all venv test lint ring synth images check clean
+.PHONY: all venv test lint ring synth capture images check clean
 
 all: check
 
@@ -41,6 +42,12 @@ ring:
 synth:
 	./scripts/synth_report.sh
 
+capture: venv
+	PATH="$(VENV_BIN):$$PATH" $(MAKE) -C test capture
+
+# Needs the per pattern frames from `make test` and the sequences from
+# `make capture`. Both are simulation runs and both verify every frame against
+# test/model.py, so no image in docs/img is a mockup.
 images: venv
 	$(PY) scripts/make_images.py
 
