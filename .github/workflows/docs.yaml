@@ -1,7 +1,10 @@
 name: docs
 
 # Renders docs/info.md into the shuttle datasheet using Tiny Tapeout's support
-# tools. Requires their infrastructure and has not been validated here.
+# tools. It runs on a plain ubuntu-24.04 runner with no secrets and no Tiny
+# Tapeout API access, and it passes on every push here. What it does not do is
+# submit anything: the datasheet is a render of docs/info.md, not a shuttle
+# entry.
 on:
   push:
   workflow_dispatch:

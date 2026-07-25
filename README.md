@@ -754,6 +754,7 @@ formal/
 docs/
   info.md                         shuttle datasheet
   design.md                       area budget, pattern costs, entropy design
+  ADAPTING.md                     how to change this design, section by section
   synth/                          committed Yosys area reports
   sta/                            OpenSTA per corner reports, ring frequency
   hardening/                      LibreLane metrics and signoff
@@ -761,7 +762,36 @@ docs/
   formal/                         SymbiYosys task results
   img/                            hand written SVGs, generated PNGs and GIFs,
                                   and the two routed layout renders
+CONTRIBUTING.md      setup, the make targets, what CI runs, what a good PR looks like
 ```
+
+## Forking this
+
+The flow around the design is more reusable than the design. Everything in
+`scripts/`, the four CI workflows, `hardening/`, and the lockstep model
+comparison in `test/` are independent of what the tile actually computes, so a
+fork mostly means replacing `src/` and `test/model.py` and re-running the
+measurements.
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) is the working guide: tool versions, what
+  each `make` target needs and how long it takes, how to run one cocotb test, the
+  five file lists that have to stay in sync, what CI runs on a pull request as
+  opposed to a push, and the rule that every number in the docs comes from a
+  committed report.
+- [docs/ADAPTING.md](docs/ADAPTING.md) is the change guide: the exact module
+  interface a new pattern generator has to implement and the nine places it gets
+  registered, what changing the VGA mode touches (including the 10 bit counters
+  that cap a total at 1023), how to swap or retune the entropy source, the
+  debiaser, the conditioner and the health test thresholds with what those
+  thresholds actually mean, how to re-derive the tile count from a routed die
+  instead of guessing it, and how to re-run the hardening flow and regenerate the
+  layout renders.
+
+The two facts most likely to save someone else the time they cost here: Tiny
+Tapeout tile geometry has to be read out of `tt_block_<tile>_pgvdd.def` in
+`tt-support-tools` rather than computed from a pitch, and a synthesis area
+estimate on this shuttle is about 40% optimistic because hold fixing and the
+clock tree do not exist until after placement.
 
 ## Honesty notes
 
