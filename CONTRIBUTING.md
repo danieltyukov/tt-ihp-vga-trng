@@ -50,8 +50,9 @@ make venv
 make check          # lint + ring + formal + test + synth
 ```
 
-`make check` is the gate. If it passes on a clean checkout, your environment is
-good enough for everything except the physical flow.
+`make check` is the gate, about 17 minutes of which 16 is the simulation. If it
+passes on a clean checkout, your environment is good enough for everything except
+the physical flow.
 
 | what you want to run | additionally needs |
 | --- | --- |
@@ -63,9 +64,10 @@ good enough for everything except the physical flow.
 | `make fpga` | `yosys`, `nextpnr-ice40`, `fpga-icestorm` |
 | `make formal` | `sby` (SymbiYosys) and `z3` |
 
-The PDK defaults to `/home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2`
-and is overridden with `PDK_ROOT_IHP` (`make sta`, `make synth`) or `PDK_ROOT`
-(`make gl`, which wants the parent directory). Tested with Icarus 12.0 and Tiny
+The scripts fall back to the author's PDK install,
+`/home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2`, so on any other
+machine set `PDK_ROOT_IHP` (`make sta`, `make synth`) or `PDK_ROOT` (`make gl`,
+which wants the parent directory). Tested with Icarus 12.0 and Tiny
 Tapeout's Icarus 13.0 for gate level, Verilator 5.020, Yosys 0.33, cocotb 2.0.1,
 LibreLane 3.0.0.dev44, OpenSTA 3.1.0 and z3 4.8.12.
 
@@ -112,8 +114,10 @@ COCOTB_TEST_FILTER=test_health_apt make -B
 ```
 
 `COCOTB_TEST_FILTER` takes a regex, so `test_health_.*` runs the three health
-tests. The four longest tests are `test_golden_frames`, `test_vga_timing`,
-`test_lfsr_period` and `test_trng_statistics`; the rest finish in seconds.
+tests. The four that cost anything are `test_golden_frames` (562 s),
+`test_vga_timing` (205 s), `test_pattern_switch_mid_frame` (111 s) and
+`test_trng_statistics` (42 s); the other seven finish in under 10 seconds
+together.
 
 By default only the tile pins are dumped, because a full hierarchy dump of a
 230 ms simulation is tens of megabytes and costs about 20% of the runtime. For
