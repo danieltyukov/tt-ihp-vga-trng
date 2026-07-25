@@ -850,8 +850,10 @@ to let a bench adjust once the real frequency is known.
   on every push and passes, so the difference is not hypothetical, but the two are
   not the same floorplan.
 - **The design fits 1x1 with little room to spare.** 82.7% post route density, and
-  placement fails outright at a 60% or 80% target. A future change of any size
-  needs the density rechecked, not assumed.
+  `make harden` fails placement outright at a 60% or an 80% target. Tiny Tapeout's
+  own flow is more forgiving and hardened it at 80, but 85 is committed because
+  that is what both accept. A future change of any size needs the density
+  rechecked, not assumed.
 - **One max fanout violation remains** on the clock tree root buffer, documented
   in section 7 with both attempts to remove it.
 - **The FPGA build has no ring oscillators.** `nextpnr-ice40` refuses any design
