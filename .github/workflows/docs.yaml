@@ -1,0 +1,19 @@
+name: docs
+
+# Renders docs/info.md into the shuttle datasheet using Tiny Tapeout's support
+# tools. Requires their infrastructure and has not been validated here.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build docs
+        uses: TinyTapeout/tt-gds-action/docs@ttihp26a

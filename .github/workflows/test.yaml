@@ -1,0 +1,102 @@
+name: test
+
+# This is the workflow that actually runs here and in CI with no Tiny Tapeout
+# infrastructure involved: Icarus, cocotb, Verilator and Yosys, all from apt and
+# pip. The gds and docs workflows need Tiny Tapeout's own actions, see README.
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install verilator
+        run: sudo apt-get update && sudo apt-get install -y verilator
+
+      - name: Verilator lint, zero warnings expected
+        run: make -C test lint
+
+  ring:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      # Structural checks on the ring oscillator path, which the cocotb
+      # regression deliberately does not touch. See src/entropy_source.v.
+      - name: Ring oscillator testbench
+        run: make -C test ring
+
+  cocotb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python packages
+        run: pip install -r test/requirements.txt
+
+      - name: Run the regression
+        run: |
+          cd test
+          make clean
+          make
+          # make returns success even when a test fails, so check the report
+          ! grep -q "<failure" results.xml
+
+      - name: Test summary
+        uses: test-summary/action@v2.3
+        with:
+          paths: "test/results.xml"
+        if: always()
+
+      - name: Upload waveform and results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test/tb.fst
+            test/results.xml
+            test/output/*.json
+
+  synth:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yosys
+        run: sudo apt-get update && sudo apt-get install -y yosys
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Fetches the sg13g2 liberty from IHP-Open-PDK, maps against it, and fails
+      # on any latch cell or blackbox.
+      - name: Yosys area report
+        run: ./scripts/synth_report.sh
+
+      - name: Fail if the committed area report is stale
+        run: |
+          git diff --stat -- docs/synth/area.json
+          git diff --quiet -- docs/synth/area.json || {
+            echo "docs/synth/area.json differs from a fresh run; re-run make synth and commit"
+            exit 1
+          }
+
+      - name: Upload synthesis report
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synth-report
+          path: docs/synth/

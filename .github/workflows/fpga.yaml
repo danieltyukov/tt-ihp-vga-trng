@@ -1,0 +1,26 @@
+name: fpga
+
+# Builds an ICE40UP5K bitstream for the Tiny Tapeout FPGA emulator. Off by
+# default, as in the template, because it needs their toolchain container.
+#
+# Note for anyone enabling this: the ring oscillators in src/ring_osc.v are
+# combinational loops. Yosys' ice40 flow will not synthesise them. Build with
+# SIM_ENTROPY=1 so entropy comes from uio_in[0] instead, and drive that pin from
+# something on the board.
+on:
+  push:
+    # Comment out (or remove) the following line to run the FPGA workflow on every push:
+    branches: none
+  workflow_dispatch:
+
+jobs:
+  fpga:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: FPGA bitstream for TT ASIC Sim (ICE40UP5K)
+        uses: TinyTapeout/tt-gds-action/fpga/ice40up5k@ttihp26a
