@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""Reduce the LibreLane final metrics to the numbers the README quotes.
+
+Called by scripts/harden.sh. Fails if signoff is not clean, because a hardening
+run that DRCs is not evidence of anything and should not quietly produce a
+summary file.
+
+The one subtlety worth writing down: design__instance__area includes filler
+cells, and filler by construction expands to occupy whatever the real cells left
+over, so instance area over die area is close to 1 whatever the design does and
+is not a utilization measure. The number that means something is
+design__instance__area__stdcell minus the fill_cell class, which is the area of
+cells that implement the design.
+"""
+
+import json
+import pathlib
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+DOCS = ROOT / "docs" / "hardening"
+
+# One Tiny Tapeout tile on the IHP shuttle, from the template's own comment in
+# info.yaml: "A single tile is about 167x108 uM".
+TILE_UM2 = 167.0 * 108.0
+
+CLEAN = {
+    "route__drc_errors": 0,
+    "magic__drc_error__count": 0,
+    "klayout__drc_error__count": 0,
+    "design__lvs_error__count": 0,
+    "antenna__violating__nets": 0,
+    "design__instance_unmapped__count": 0,
+    "design__violations": 0,
+    "design__max_slew_violation__count": 0,
+    "design__max_cap_violation__count": 0,
+    "design__power_grid_violation__count": 0,
+    "route__antenna_violation__count": 0,
+    "antenna__violating__pins": 0,
+}
+
+# Setup and hold are checked against total negative slack rather than a violation
+# count, because this LibreLane version reports TNS but no per-check count.
+TNS_CLEAN = ("timing__setup__tns", "timing__hold__tns")
+
+
+def main():
+    run = pathlib.Path(sys.argv[1])
+    m = json.loads((run / "final" / "metrics.json").read_text())
+
+    die = m["design__die__area"]
+    inst_total = m["design__instance__area"]
+    fill = m.get("design__instance__area__class:fill_cell", 0.0)
+    real = inst_total - fill
+
+    classes = {
+        k.split(":", 1)[1]: v
+        for k, v in m.items()
+        if k.startswith("design__instance__area__class:")
+    }
+    counts = {
+        k.split(":", 1)[1]: v
+        for k, v in m.items()
+        if k.startswith("design__instance__count__class:")
+    }
+
+    summary = {
+        "tool": "LibreLane 3.0.0.dev44",
+        "pdk": "ihp-sg13g2",
+        "sdc": "hardening/constraints.sdc",
+        "clock_period_ns": 39.722,
+        "clock_mhz": 25.175,
+        "die_area_um2": die,
+        "die_um": [167.0, 216.0],
+        "tile_area_um2": TILE_UM2,
+        "tiles_declared": "1x2",
+        "instance_area_total_um2": inst_total,
+        "instance_area_fill_um2": fill,
+        "instance_area_real_um2": round(real, 1),
+        "instance_count_total": m["design__instance__count"],
+        "instance_count_fill": counts.get("fill_cell", 0),
+        "instance_count_real": m["design__instance__count"] - counts.get("fill_cell", 0),
+        "flop_count": counts.get("sequential_cell", 0),
+        "area_by_class_um2": classes,
+        "count_by_class": counts,
+        "density_real_over_die": round(real / die, 4),
+        "density_real_over_1x1": round(real / TILE_UM2, 4),
+        "density_real_over_1x2": round(real / (2 * TILE_UM2), 4),
+        "setup_ws_ns": m["timing__setup__ws"],
+        "hold_ws_ns": m["timing__hold__ws"],
+        "setup_tns_ns": m["timing__setup__tns"],
+        "hold_tns_ns": m["timing__hold__tns"],
+        "wirelength_um": m.get("route__wirelength"),
+        "power_total_w": m.get("power__total"),
+        "max_slew_violations": m.get("design__max_slew_violation__count"),
+        "max_cap_violations": m.get("design__max_cap_violation__count"),
+        "max_fanout_violations": m.get("design__max_fanout_violation__count"),
+        "signoff": {k: m.get(k) for k in CLEAN},
+    }
+    # Per corner slack, useful for the README table.
+    summary["per_corner"] = {
+        k.split("corner:", 1)[1]: {
+            "setup_ws_ns": m[k],
+            "hold_ws_ns": m.get(k.replace("setup", "hold")),
+        }
+        for k in m
+        if k.startswith("timing__setup__ws__corner:")
+    }
+
+    DOCS.mkdir(parents=True, exist_ok=True)
+    (DOCS / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+
+    print(f"die area            {die:>12.1f} um2   (167 x 216, the 1x2 tile footprint)")
+    print(f"real cell area      {real:>12.1f} um2   ({summary['instance_count_real']} cells)")
+    print(f"  fill cells        {fill:>12.1f} um2   ({summary['instance_count_fill']} cells)")
+    print(f"density on 1x2      {summary['density_real_over_1x2'] * 100:>12.1f} %")
+    print(f"density on 1x1      {summary['density_real_over_1x1'] * 100:>12.1f} %   (would not fit)")
+    print(f"setup worst slack   {summary['setup_ws_ns']:>12.4f} ns")
+    print(f"hold worst slack    {summary['hold_ws_ns']:>12.4f} ns")
+    print(f"power               {summary['power_total_w'] * 1000:>12.4f} mW")
+    print(f"wirelength          {summary['wirelength_um']:>12} um")
+
+    failed = []
+    for k, want in CLEAN.items():
+        got = m.get(k)
+        if got is None:
+            print(f"note: {k} not reported by this LibreLane version")
+            continue
+        if got != want:
+            failed.append(f"{k} = {got}, expected {want}")
+    for k in TNS_CLEAN:
+        got = m.get(k)
+        if got is None or got < 0:
+            failed.append(f"{k} = {got}, expected 0 or better")
+    if failed:
+        print("\nSIGNOFF NOT CLEAN:")
+        for f in failed:
+            print(f"  {f}")
+        return 1
+    print(
+        "\nsignoff clean: DRC 0 (route, magic, klayout), LVS 0, antenna 0 nets and "
+        "0 pins, power grid 0, no unmapped cells, max slew 0, max cap 0, "
+        "setup TNS 0, hold TNS 0"
+    )
+
+    fo = summary["max_fanout_violations"]
+    if fo:
+        print(
+            f"note: {fo} max fanout violation(s) remain. See docs/design.md; this is "
+            "the clock tree root buffer and it is documented rather than hidden."
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

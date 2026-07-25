@@ -1,0 +1,99 @@
+{
+  "//": "LibreLane 3.0.0.dev44 config for a LOCAL hardening run of this tile.",
+  "//": "",
+  "//": "This is NOT the Tiny Tapeout submission config. src/config.json is, and it",
+  "//": "is the template default that TinyTapeout/tt-gds-action merges with its own",
+  "//": "shuttle settings (die area from the tiles field, the tile power grid, the",
+  "//": "harness pin placement). This file exists so the same tool at the same",
+  "//": "version can be run here to answer one question: does this design actually",
+  "//": "place, route, and pass DRC and LVS on the real IHP PDK?",
+  "//": "",
+  "//": "Run it with: make harden. Paths are dir:: relative to the repo root,",
+  "//": "which is passed as --design-dir, because LibreLane refuses to read outside",
+  "//": "the design directory and ../src would escape it.",
+
+  "DESIGN_NAME": "tt_um_danieltyukov_vga_trng",
+  "PDK": "ihp-sg13g2",
+
+  "VERILOG_FILES": [
+    "dir::src/tt_um_danieltyukov_vga_trng.v",
+    "dir::src/vga_sync.v",
+    "dir::src/pattern_mux.v",
+    "dir::src/pat_xor.v",
+    "dir::src/pat_bars.v",
+    "dir::src/pat_sierp.v",
+    "dir::src/pat_ripple.v",
+    "dir::src/sine_q.v",
+    "dir::src/pat_plasma.v",
+    "dir::src/pat_ball.v",
+    "dir::src/pat_stars.v",
+    "dir::src/pat_rule30.v",
+    "dir::src/trng.v",
+    "dir::src/ring_inv.v",
+    "dir::src/ring_gate.v",
+    "dir::src/ring_osc.v",
+    "dir::src/entropy_source.v",
+    "dir::src/von_neumann.v",
+    "dir::src/lfsr_whitener.v",
+    "dir::src/health_monitor.v"
+  ],
+
+  "//": "25.175 MHz pixel clock, 1/25175000 = 39.722 ns.",
+  "CLOCK_PORT": "clk",
+  "CLOCK_PERIOD": 39.722,
+
+  "//": "Real constraints, not the generic fallback. Without these two keys",
+  "//": "LibreLane warns and substitutes an SDC of its own, and any slack number",
+  "//": "quoted from that is not worth having.",
+  "PNR_SDC_FILE": "dir::hardening/constraints.sdc",
+  "SIGNOFF_SDC_FILE": "dir::hardening/constraints.sdc",
+
+  "//": "A Tiny Tapeout tile is about 167 x 108 um. This design is declared as 1x2",
+  "//": "in info.yaml, so the die is fixed at exactly that footprint: 167 x 216 um.",
+  "//": "Fixing it rather than letting the floorplanner choose is the point. It",
+  "//": "makes the run answer 'does it fit in the area I claimed' instead of 'what",
+  "//": "area does it want'.",
+  "FP_SIZING": "absolute",
+  "DIE_AREA": [0, 0, 167, 216],
+
+  "//": "Placement density target, the same value src/config.json uses.",
+  "PL_TARGET_DENSITY_PCT": 60,
+
+  "//": "Margins, mirroring src/config.json.",
+  "TOP_MARGIN_MULT": 1,
+  "BOTTOM_MARGIN_MULT": 1,
+  "LEFT_MARGIN_MULT": 6,
+  "RIGHT_MARGIN_MULT": 6,
+
+  "//": "CTS built a root buffer driving 16 sinks against the library's",
+  "//": "default_max_fanout of 8. Larger sink clusters mean fewer level one",
+  "//": "buffers for the root to drive. OpenROAD's default is 20.",
+  "CTS_SINK_CLUSTERING_SIZE": 40,
+
+  "//": "Hold margins from the template.",
+  "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
+  "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
+
+  "RUN_LINTER": 1,
+  "RUN_CTS": 1,
+
+  "//": "Keep signoff on. DRC and LVS clean is the whole claim.",
+  "RUN_KLAYOUT_DRC": 1,
+  "RUN_KLAYOUT_XOR": 0,
+  "RUN_MAGIC_DRC": 1,
+
+  "//": "Do not buffer the outputs, as the tile drives the harness mux directly.",
+  "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,
+
+  "//": "The ring oscillators in src/ring_osc.v are deliberate combinational",
+  "//": "loops. Routing them in a small die is congested, so allow the global",
+  "//": "router to exceed its congestion estimate, exactly as src/config.json does.",
+  "GRT_ALLOW_CONGESTION": 1,
+
+  "FP_IO_HLENGTH": 2,
+  "FP_IO_VLENGTH": 2,
+  "FP_PDN_VPITCH": 38.87,
+  "FP_PDN_MULTILAYER": 0,
+  "MAGIC_DEF_LABELS": 0,
+  "MAGIC_WRITE_LEF_PINONLY": 1
+}
