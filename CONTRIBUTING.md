@@ -81,8 +81,8 @@ LibreLane 3.0.0.dev44, OpenSTA 3.1.0 and z3 4.8.12.
 | `make formal` | two SymbiYosys proofs plus a mutation check | 20 s |
 | `make synth` | Yosys area report against the real IHP Liberty | 16 s |
 | `make check` | all five of the above | 17 min |
-| `make capture` | 64 further model verified frames for the animations | 27 min |
-| `make images` | regenerate every PNG and GIF in `docs/img` | 1 min |
+| `make capture` | 64 further model verified frames for the animations | 44 min |
+| `make images` | regenerate every PNG and GIF in `docs/img` | 16 s |
 | `make sta` | OpenSTA at three corners, per corner remapped netlists | 25 s |
 | `make harden` | LibreLane to GDS, signoff extract, layout renders | 25 min |
 | `make gl` | the regression again on the hardened netlist | 15 min |
@@ -186,9 +186,20 @@ make images    # reads all of the above plus docs/synth/area.json
 ```
 
 `make images` fails with a message naming the missing input rather than silently
-skipping a figure. `test/output/` is gitignored, so a fresh clone has to run the
-simulations before it can regenerate an image. The two layout renders come from
-`make harden` instead, through `scripts/render_gds.py`.
+skipping a figure, so a stale figure cannot survive a missing input:
+`missing test/output/stats.json / run make test first`, and it exits non zero.
+`test/output/` is gitignored, so a fresh clone has to run the simulations before
+it can regenerate an image. The layout renders are the exception: they come from
+the hardened GDS of the run named in `docs/hardening/summary.json`, and if that
+run directory is gone `make images` says so and keeps the committed pair rather
+than inventing one.
+
+The whole chain is deterministic, which is worth knowing before you go looking
+for a bug in a diff. Running `make test`, `make capture` and `make images` from
+scratch reproduced all 18 raster files in `docs/img` **byte for byte** against
+the committed ones, and `make synth`, `make sta` and `make fpga` reproduced their
+reports the same way. If a regenerated figure or report does differ, something
+about the design or the tool version really did change.
 
 If you add a figure, add it to `scripts/make_images.py` and derive it from
 committed data or from simulation output. Do not commit a PNG that no script can
