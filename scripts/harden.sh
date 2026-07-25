@@ -39,8 +39,8 @@ if [ "${HARDEN_SKIP_FLOW:-0}" != "1" ]; then
   # Merge the computed thread counts over the committed config. The committed file
   # has to carry fixed numbers because it is JSON, so the computed values are
   # applied here instead of being baked in.
-  python3 - "$THREADS" > build/harden_config.json <<'PYEOF'
-import json, sys, re, pathlib
+  python3 - "$THREADS" "${HARDEN_DIE:-}" > build/harden_config.json <<'PYEOF'
+import json, sys, pathlib
 raw = pathlib.Path("hardening/config.json").read_text()
 # strip the "//" comment keys, which are legal for LibreLane but not for json.load
 # when duplicated, so load with a hook that keeps the last of each key
@@ -48,6 +48,14 @@ cfg = json.loads(raw, object_pairs_hook=lambda pairs: {k: v for k, v in pairs})
 n = int(sys.argv[1])
 cfg["KLAYOUT_DRC_THREADS"] = n
 cfg["KLAYOUT_XOR_THREADS"] = n
+# HARDEN_DIE="W H" overrides the die, which is how the 1x1 tile experiment ran.
+die = sys.argv[2].strip() if len(sys.argv) > 2 else ""
+if die:
+    w, h = (float(v) for v in die.split())
+    cfg["DIE_AREA"] = [0, 0, w, h]
+import os
+if os.environ.get("HARDEN_DENSITY"):
+    cfg["PL_TARGET_DENSITY_PCT"] = float(os.environ["HARDEN_DENSITY"])
 cfg.pop("//", None)
 json.dump(cfg, sys.stdout, indent=2)
 PYEOF
@@ -60,6 +68,13 @@ fi
 if [ ! -f "$RUN/final/metrics.json" ]; then
   echo "no metrics at $RUN/final/metrics.json; the flow did not finish" >&2
   exit 1
+fi
+
+# HARDEN_SKIP_REPORT=1 runs the flow and stops. Used for experiments like the 1x1
+# tile attempt, which must not overwrite the committed reports and renders.
+if [ "${HARDEN_SKIP_REPORT:-0}" = "1" ]; then
+  echo "flow finished, reports skipped. Metrics: $RUN/final/metrics.json"
+  exit 0
 fi
 
 mkdir -p docs/hardening docs/img

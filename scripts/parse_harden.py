@@ -21,9 +21,18 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs" / "hardening"
 
-# One Tiny Tapeout tile on the IHP shuttle, from the template's own comment in
-# info.yaml: "A single tile is about 167x108 uM".
-TILE_UM2 = 167.0 * 108.0
+# One Tiny Tapeout tile on the IHP shuttle, from their own floorplan templates in
+# tt-support-tools (tech/ihp-sg13g2/def/tt_block_NxM_pgvdd.def):
+#
+#   1x1   202.08 x 154.98 um = 31318.3 um2
+#   1x2   202.08 x 313.74 um = 63400.6 um2
+#
+# Not the "about 167x108 uM" the project template's info.yaml comment gives, which
+# is 42% smaller and is what an earlier version of this script used. The numbers
+# above are the die Tiny Tapeout's own gds action actually hands the floorplanner,
+# read out of the resolved config of a run it produced.
+TILE_UM = (202.08, 154.98)
+TILE_UM2 = TILE_UM[0] * TILE_UM[1]
 
 CLEAN = {
     "route__drc_errors": 0,
@@ -91,6 +100,11 @@ def check_rings(run):
 def main():
     run = pathlib.Path(sys.argv[1])
     m = json.loads((run / "final" / "metrics.json").read_text())
+    # The die comes from the run rather than from a constant, so the summary can
+    # never describe a floorplan the flow did not actually use.
+    _, _, die_w, die_h = json.loads((run / "resolved.json").read_text())["DIE_AREA"]
+    tiles_h = round(die_w / TILE_UM[0])
+    tiles_v = round(die_h / TILE_UM[1])
 
     die = m["design__die__area"]
     inst_total = m["design__instance__area"]
@@ -115,9 +129,10 @@ def main():
         "clock_period_ns": 39.722,
         "clock_mhz": 25.175,
         "die_area_um2": die,
-        "die_um": [167.0, 216.0],
-        "tile_area_um2": TILE_UM2,
-        "tiles_declared": "1x2",
+        "die_um": [die_w, die_h],
+        "tile_um": list(TILE_UM),
+        "tile_area_um2": round(TILE_UM2, 1),
+        "tiles_from_die": f"{tiles_h}x{tiles_v}",
         "instance_area_total_um2": inst_total,
         "instance_area_fill_um2": fill,
         "instance_area_real_um2": round(real, 1),
@@ -129,7 +144,6 @@ def main():
         "count_by_class": counts,
         "density_real_over_die": round(real / die, 4),
         "density_real_over_1x1": round(real / TILE_UM2, 4),
-        "density_real_over_1x2": round(real / (2 * TILE_UM2), 4),
         "setup_ws_ns": m["timing__setup__ws"],
         "hold_ws_ns": m["timing__hold__ws"],
         "setup_tns_ns": m["timing__setup__tns"],
@@ -154,11 +168,11 @@ def main():
     DOCS.mkdir(parents=True, exist_ok=True)
     (DOCS / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
 
-    print(f"die area            {die:>12.1f} um2   (167 x 216, the 1x2 tile footprint)")
+    print(f"die area            {die:>12.1f} um2   ({die_w} x {die_h}, a {tiles_h}x{tiles_v} tile)")
     print(f"real cell area      {real:>12.1f} um2   ({summary['instance_count_real']} cells)")
     print(f"  fill cells        {fill:>12.1f} um2   ({summary['instance_count_fill']} cells)")
-    print(f"density on 1x2      {summary['density_real_over_1x2'] * 100:>12.1f} %")
-    print(f"density on 1x1      {summary['density_real_over_1x1'] * 100:>12.1f} %   (would not fit)")
+    print(f"density on this die {summary['density_real_over_die'] * 100:>12.1f} %")
+    print(f"density on one 1x1  {summary['density_real_over_1x1'] * 100:>12.1f} %")
     print(f"setup worst slack   {summary['setup_ws_ns']:>12.4f} ns")
     print(f"hold worst slack    {summary['hold_ws_ns']:>12.4f} ns")
     print(f"power               {summary['power_total_w'] * 1000:>12.4f} mW")

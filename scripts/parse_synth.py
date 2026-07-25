@@ -9,10 +9,12 @@ import json
 import pathlib
 import re
 
-# TinyTapeout IHP shuttle geometry. One tile of usable placement area, from the
-# shuttle documentation and the tile pitch used by tt-gds-action.
-TILE_W_UM = 167.0
-TILE_H_UM = 108.0
+# TinyTapeout IHP shuttle geometry, from their own floorplan template
+# tt/tech/ihp-sg13g2/def/tt_block_1x1_pgvdd.def, which is the die tt-gds-action
+# hands the floorplanner. Not the "about 167x108 uM" the project template's
+# info.yaml comment gives: that is 42% smaller and does not match any run.
+TILE_W_UM = 202.08
+TILE_H_UM = 154.98
 TILE_AREA = TILE_W_UM * TILE_H_UM
 
 # Librelane places at PL_TARGET_DENSITY_PCT, which src/config.json leaves at the

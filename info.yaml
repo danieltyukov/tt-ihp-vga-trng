@@ -11,22 +11,24 @@ project:
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
   #
-  # 1x2, and the number that decides it is post route, not post synthesis. The
-  # two are far enough apart here to matter: Yosys reports 18040 um2 of mapped
-  # cell area against 18036 um2 of gross 1x1 tile area, which lands the design
-  # exactly on the boundary, and a comparison that close cannot be trusted in
-  # either direction. LibreLane hardening resolves it (docs/hardening/summary.json):
+  # That comment is the template's and it is wrong for this shuttle. Tiny Tapeout's
+  # own floorplan template, tt/tech/ihp-sg13g2/def/tt_block_1x1_pgvdd.def, gives a
+  # 1x1 tile as 202.08 x 154.98 um = 31318 um2, which is 74% more area.
   #
-  #   real cell area after place and route   25940.5 um2, 1767 cells
-  #   gross 1x1 tile area                    18036   um2  (167 x 108)
-  #   1x1 utilisation that would need         143.8%       arithmetically impossible
-  #   die that was actually hardened          36072   um2  (167 x 216) = 1x2
-  #   1x2 utilisation                          71.9%       routed, DRC and LVS clean
+  # 1x1, and the number that decides it is post route, not post synthesis:
   #
-  # The 7900 um2 between synthesis and route is mostly hold fixing: 338 timing
-  # repair buffers, 5846 um2. scripts/check_area.py re-derives this and fails if
-  # the tiles field stops following the measurement.
-  tiles: "1x2"
+  #   post synthesis cell area     18040   um2   57.6% of a 1x1 tile
+  #   post route standard cells    25888   um2   82.7% of a 1x1 tile, 1771 cells
+  #
+  # 82.7% is well past the 60% placement density LibreLane targets by default, and
+  # at that default global placement refuses the design outright with GPL-0302.
+  # src/config.json invites exactly one edit for exactly that error, so
+  # PL_TARGET_DENSITY_PCT is raised there, and then the tile places, routes and
+  # signs off with 0 DRC (route, magic and klayout), 0 LVS and 0 antenna, with
+  # +17.45 ns of setup slack at 39.722 ns. Measured, not estimated: see README and
+  # docs/hardening/. The synthesis-only forecast would have said this fits a 1x1
+  # comfortably, which is the right answer for the wrong reason.
+  tiles: "1x1"
 
   top_module:  "tt_um_danieltyukov_vga_trng"
 

@@ -13,7 +13,16 @@
 
   "//": "PL_TARGET_DENSITY_PCT - You can increase this if Global Placement fails with error GPL-0302.",
   "//": "Users have reported that values up to 80 worked well for them.",
-  "PL_TARGET_DENSITY_PCT": 60,
+  "//": "",
+  "//": "Raised from 60, which is the one edit this file invites. At 60 global",
+  "//": "placement refuses this design on a 1x1 tile with exactly that error:",
+  "//": "  [GPL-0302] Consider increasing the target density or re-floorplanning",
+  "//": "  Given target density: 0.60   Suggested target density: 0.65",
+  "//": "Post route the design is 25888 um2 of standard cells in a 31318 um2 tile,",
+  "//": "so the finished density is 82.7% and the placer has to be told to expect it.",
+  "//": "Verified end to end at this value: places, routes, and signs off with 0 DRC",
+  "//": "(route, magic and klayout), 0 LVS and 0 antenna. See README.",
+  "PL_TARGET_DENSITY_PCT": 80,
 
   "//": "CLOCK_PERIOD - Increase this in case you are getting setup time violations.",
   "//": "The value is in nanoseconds, so 20ns == 50MHz.",
