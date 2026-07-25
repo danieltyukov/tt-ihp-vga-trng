@@ -99,12 +99,34 @@ project measures entropy from silicon, and the LFSR conditioner is linear, so
 `RND_OUT` must not be treated as a CSPRNG. See the repository README and
 `docs/design.md`.
 
-### Area
+### Area and the hardened result
 
-Yosys mapped against the real IHP `sg13g2` standard cell library: 1288 cells, 142
-flip-flops, 18040 um2. A tile is about 167 x 108 um = 18036 um2, so a 1x1 tile
-would need 100.0% placement density and does not fit. Two tiles put it at 50.0%,
-comfortably inside the 60% target the Tiny Tapeout flow uses.
+The tile is hardened with LibreLane 3.0.0.dev44 on ihp-sg13g2, DRC and LVS clean,
+into a 167 x 216 um die, which is the 1x2 footprint declared above.
+
+![Layout detail, 12 x 12 um](img/layout_detail.png)
+
+A 12 x 12 um box near the centre of the routed die: standard cell rows with their
+power rails, contacts, and metal2 routing. The full die view is in the repository
+README, along with a link to an interactive 3D viewer.
+
+```
+die area            36072.0 um2   167 x 216
+real cell area      25940.5 um2   1767 cells
+setup worst slack    17.5583 ns   at 39.722 ns, all three corners
+hold worst slack      0.1168 ns
+power                 0.3440 mW
+
+route DRC 0, magic DRC 0, klayout DRC 0, LVS 0, antenna 0, power grid 0
+```
+
+Post synthesis the design is 1288 cells and 18040 um2, and post route the real
+cells are 25940 um2. That difference is mostly hold buffers, and it is what
+settles the tile count: 25940 um2 is 143.8% of a single 18036 um2 tile, so 1x1 is
+not a tight fit but arithmetically impossible, while 1x2 comes to 71.9%.
+
+This is a hardened layout, not fabricated silicon. Submitting to a shuttle is a
+separate step.
 
 ![Per submodule area](img/synth_area.png)
 

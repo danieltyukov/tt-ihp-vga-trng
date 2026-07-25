@@ -82,6 +82,16 @@
   "RUN_LINTER": 1,
   "RUN_CTS": 1,
 
+  "//": "KLayout DRC and XOR are single threaded unless told otherwise, and the",
+  "//": "maximal sg13g2 DRC runset can take longer than every other stage combined.",
+  "//": "4 is a deliberately modest committed default because it has to be a fixed",
+  "//": "number in JSON. scripts/harden.sh computes a better one from nproc and",
+  "//": "overrides it, and honours KLAYOUT_THREADS if you set it. Raise this if you",
+  "//": "have the machine to yourself; leave it low if several PnR runs share it,",
+  "//": "since oversubscribing cores is slower than running single threaded.",
+  "KLAYOUT_DRC_THREADS": 4,
+  "KLAYOUT_XOR_THREADS": 4,
+
   "//": "Keep signoff on. DRC and LVS clean is the whole claim.",
   "RUN_KLAYOUT_DRC": 1,
   "RUN_KLAYOUT_XOR": 0,

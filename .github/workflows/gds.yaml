@@ -1,8 +1,35 @@
 name: gds
 
-# Requires Tiny Tapeout's own shuttle infrastructure (TinyTapeout/tt-gds-action,
-# the ihp-sg13g2 PDK and a Librelane container). It is here for shuttle
-# submission and has not been validated in this repository. See README.
+# Hardens the tile to GDS with LibreLane and runs Tiny Tapeout's precheck, then
+# publishes the layout to GitHub Pages for the 3D viewer.
+#
+# These jobs run on plain ubuntu-24.04 runners with no secrets and no Tiny Tapeout
+# API access, and all three pass on this repository. What still requires Tiny
+# Tapeout is submitting to a shuttle and fabrication, which no workflow here does.
+#
+# The gl_test job that the template ships with has been REMOVED, not disabled, and
+# the reason is specific to this design rather than a CI problem:
+#
+#   src/ring_osc.v is a deliberate combinational loop, and it has to survive
+#   synthesis for the TRNG to work at all, so the hardened netlist contains a
+#   five inverter and a seven inverter ring. The IHP functional cell models are
+#   zero delay (sg13g2_inv_1 is `not (Y, A);` with a 0.0 specify block), so once
+#   rst_n releases and the enable gate opens, an event driven simulator has a
+#   zero delay feedback loop and stops advancing in time. Measured locally: the
+#   netlist elaborates, uio_oe reads the correct 0b11100000 through the tie
+#   cells, and simulation runs normally while rst_n is low and the ring is gated
+#   off, then makes no further progress. On this repository the job sat
+#   in_progress for 1h51m before it was removed.
+#
+#   This is inherent to gate level simulation of any ring oscillator against
+#   zero delay models, not something fixable in the RTL. The synchronous logic is
+#   verified at RTL by the 11 test cocotb suite, and the ring oscillator path is
+#   verified structurally by test/tb_ring.v and by the surviving stage count
+#   check in scripts/synth_report.sh.
+#
+#   test/Makefile still supports `make -B GATES=yes`, including a fix the stock
+#   template needs (sg13g2_udp.v has to be read before sg13g2_stdcell.v or
+#   elaboration fails with 154 unknown module errors). See README.
 on:
   push:
   workflow_dispatch:
@@ -28,18 +55,6 @@ jobs:
     steps:
       - name: Run Tiny Tapeout Precheck
         uses: TinyTapeout/tt-gds-action/precheck@ttihp26a
-
-  gl_test:
-    needs: gds
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: GL test
-        uses: TinyTapeout/tt-gds-action/gl_test@ttihp26a
 
   viewer:
     needs: gds

@@ -431,6 +431,53 @@ def plot_area(area, harden=None):
 
 
 # ---------------------------------------------------------------------------
+# layout renders from the hardened GDS
+# ---------------------------------------------------------------------------
+def render_layouts():
+    """Re-render the full die and the detail crop, if a hardened GDS exists.
+
+    Two views on purpose: a full die view of a routed tile is close to unreadable
+    on its own because every metal layer overlaps at that scale, so the full die
+    carries the outline, pin frame and power straps while a 12 x 12 um box carries
+    the cell rows, contacts and routing.
+    """
+    import shutil
+    import subprocess
+
+    top = "tt_um_danieltyukov_vga_trng"
+    candidates = sorted(ROOT.glob(f"runs/*/final/gds/{top}.gds"))
+    existing = [p for p in (IMG / "layout.png", IMG / "layout_detail.png") if p.exists()]
+    if not candidates:
+        if existing:
+            print("  no runs/*/final/gds found; keeping the committed renders")
+            return existing
+        print("  no hardened GDS and no committed renders. Run `make harden` first.")
+        return []
+    if not shutil.which("klayout"):
+        print("  klayout not on PATH; keeping the committed renders")
+        return existing
+
+    gds = candidates[-1]
+    jobs = [
+        (IMG / "layout.png", ["-rd", "w=880", "-rd", "h=1140"]),
+        (IMG / "layout_detail.png",
+         ["-rd", "w=900", "-rd", "h=900", "-rd", "box=76,104,88,116"]),
+    ]
+    out = []
+    for path, extra in jobs:
+        subprocess.run(
+            ["klayout", "-b", "-rm", str(ROOT / "scripts" / "render_gds.py"),
+             "-rd", f"gds={gds}", "-rd", f"out={path}"] + extra,
+            check=True, capture_output=True, cwd=ROOT,
+        )
+        # KLayout writes uncompressed RGB; the full die view lands over Tiny
+        # Tapeout's 512 kB per image docs limit without this.
+        Image.open(path).convert("RGB").save(path, optimize=True)
+        print(f"  {path.name}: {path.stat().st_size // 1024} kB")
+        out.append(path)
+    return out
+
+
 def main():
     IMG.mkdir(parents=True, exist_ok=True)
     made = []
@@ -476,10 +523,8 @@ def main():
         print("        post route bar. Falling back to post synthesis only.")
     made.append(plot_area(area, harden))
     print(f"  {made[-1].name}")
-    layout = IMG / "layout.png"
-    if layout.exists():
-        made.append(layout)
-        print(f"  {layout.name} (rendered by scripts/harden.sh)")
+    print("layout renders:")
+    made += render_layouts()
 
     total_kb = sum(p.stat().st_size for p in made) / 1024
     print(f"\n{len(made)} images written to docs/img ({total_kb:.0f} kB)")

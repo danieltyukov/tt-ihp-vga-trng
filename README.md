@@ -7,6 +7,8 @@ has von Neumann debiasing, LFSR conditioning and SP 800-90B style online health
 tests. Output goes straight to a TinyVGA PMOD.
 
 [![test](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/test.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/test.yaml)
+[![gds](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/gds.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/gds.yaml)
+[![docs](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/docs.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/docs.yaml)
 
 | | |
 | --- | --- |
@@ -19,13 +21,40 @@ tests. Output goes straight to a TinyVGA PMOD.
 | Regression | 11 cocotb tests, 2.5 million pixels compared, all passing |
 | Formal | debiaser symmetry and sync counter invariants proved with SymbiYosys, mutation checked |
 
-![Routed layout](docs/img/layout.png)
+## The hardened tile
 
-The tile, hardened locally to GDS on the real IHP PDK and rendered from the
-GDS with KLayout. 167 x 216 um, 1767 real cells plus 1198 fillers, zero DRC
-errors from all three checkers, zero LVS errors, zero antenna violations.
+| | |
+| --- | --- |
+| ![Full die](docs/img/layout.png) | ![Detail, 12 x 12 um](docs/img/layout_detail.png) |
+| The whole die, 167 x 216 um. Die outline, the pin frame around the edge, and the four vertical VPWR/VGND power straps. | A 12 x 12 um box near the centre at the same scale a designer would inspect: standard cell rows with their power rails, contacts, and metal2 routing between cells. |
 
-![Block diagram](docs/img/block_diagram.svg)
+**[Open the layout in the 3D chip viewer](https://gds-viewer.tinytapeout.com/?model=https://danieltyukov.github.io/tt-ihp-vga-trng/tinytapeout.oas&pdk=ihp-sg13g2)**
+&nbsp;&nbsp;rotate and zoom the actual layout in a browser. Published to GitHub
+Pages by the `viewer` job in [`gds.yaml`](.github/workflows/gds.yaml).
+
+Hardened with **LibreLane 3.0.0.dev44** on `ihp-sg13g2`, the same tool version and
+PDK that `TinyTapeout/tt-gds-action@ttihp26a` pins, both locally via `make harden`
+and in CI. Signoff from that run:
+
+| | | | |
+| --- | --- | --- | --- |
+| die area | **36072 um2** (167 x 216) | route DRC | **0** |
+| real cell area | **25940.5 um2**, 1767 cells | magic DRC | **0** |
+| fill cells | 7489.8 um2, 1198 cells | klayout DRC | **0** |
+| setup worst slack | **+17.5583 ns** at 39.722 ns | LVS | **0** |
+| hold worst slack | +0.1168 ns | antenna | **0** nets, **0** pins |
+| clock skew | 0.0327 ns | power grid | **0** |
+| power | 0.3440 mW | unmapped cells | **0** |
+| wirelength | 38024 um | max slew / max cap | **0** / **0** |
+
+Tiny Tapeout's own **`precheck` job passes** on this repository, so the tile
+clears their submission checks.
+
+**This is a hardened layout, not fabricated silicon.** Nothing here has been
+submitted to a shuttle and nothing has been manufactured. What the numbers above
+establish is that the design places, routes and passes DRC and LVS on the real
+PDK. Fabrication requires submitting to a Tiny Tapeout shuttle, which is a
+separate step this repository does not perform.
 
 ## Pattern gallery
 
@@ -388,7 +417,7 @@ make ring     # ring oscillator structural testbench, plain Icarus
 make synth    # Yosys area report against the real IHP liberty (needs network once)
 make capture  # 64 further model-verified frames for the animated images, ~16 min
 make sta      # OpenSTA timing closure across three real IHP corners
-make harden   # LibreLane hardening to GDS, DRC and LVS signoff, layout render
+make harden   # LibreLane hardening to GDS, DRC and LVS signoff, layout renders
 make fpga     # yosys + nextpnr-ice40 + icepack for an ICE40UP5K
 make formal   # SymbiYosys proofs of the debiaser and sync generator
 make ring-freq # ring oscillator frequency from the Liberty delay tables
@@ -479,25 +508,45 @@ covered by simulation only.
 
 ## CI jobs and what they need
 
-| workflow | needs Tiny Tapeout infrastructure | validated here |
+| workflow | jobs | status here |
 | --- | --- | --- |
-| `test.yaml` | no. apt `iverilog`, `verilator`, `yosys` plus pip | yes, all four jobs run locally |
-| `gds.yaml` | the workflow does. The hardening it wraps does not | the flow yes, the workflow no |
-| `docs.yaml` | yes. `TinyTapeout/tt-gds-action/docs` | no |
-| `fpga.yaml` | the workflow does. The ice40 flow it wraps does not | the flow yes, the workflow no |
+| `test.yaml` | lint, ring, cocotb, synth | **passing**, badge above |
+| `gds.yaml` | gds, precheck, viewer | **passing**, badge above |
+| `docs.yaml` | datasheet render | **passing**, badge above |
+| `fpga.yaml` | ice40 bitstream | off by default (`branches: none`), as in the template. The flow it wraps is validated locally, see below |
 
-Only `test.yaml` has a badge, because it is the only workflow that can be claimed
-to pass. `gds.yaml`, `docs.yaml` and `fpga.yaml` are the template's own,
-unmodified except for comments.
+All of these run on plain `ubuntu-24.04` runners with no secrets and no Tiny
+Tapeout API access. There is no badge for `fpga.yaml` because it never runs on
+push, so a badge would report nothing.
 
-The distinction on `gds.yaml` matters and is easy to overstate in either
-direction. The **workflow** has not run here: it needs
-`TinyTapeout/tt-gds-action@ttihp26a`, their container, and their shuttle
-plumbing. The **hardening flow it wraps** has run here, with the same tool at the
-same version on the same PDK, and the results are in
-[docs/hardening/](docs/hardening/). So: this tile is known to place, route and
-pass DRC and LVS. It has not passed Tiny Tapeout's precheck, it has not been
-integrated into their harness, and it is not taped out.
+### The gl_test job was removed, and why
+
+The template's `gds.yaml` ships a fourth job, `gl_test`, which re-runs the
+testbench against the hardened gate-level netlist. It is **removed here**, not
+silently disabled, because it cannot pass for this design:
+
+`src/ring_osc.v` is a deliberate combinational loop and it has to survive
+synthesis for the TRNG to exist at all, so the hardened netlist contains a five
+inverter and a seven inverter ring. The IHP functional cell models are zero delay
+(`sg13g2_inv_1` is `not (Y, A);` with a `0.0` specify block), so once `rst_n`
+releases and the enable gate opens, an event driven simulator has a zero delay
+feedback loop and stops advancing in time.
+
+Measured locally rather than assumed: the netlist elaborates, `uio_oe` reads the
+correct `0b11100000` through the tie cells, simulation runs normally while `rst_n`
+is low and the ring is gated off, and then makes no further progress. On this
+repository the job sat `in_progress` for 1h51m before removal.
+
+This is inherent to gate level simulation of any ring oscillator against zero
+delay models, not something fixable in the RTL. What covers the same ground
+instead: the 11 test cocotb suite at RTL, `test/tb_ring.v` for the oscillator
+path structurally, and the surviving-stage-count check in `make synth` which
+fails the build if the optimiser collapses either ring.
+
+`test/Makefile` still supports `make -B GATES=yes`, including a fix the stock
+template needs: `sg13g2_udp.v` has to be read before `sg13g2_stdcell.v` or
+elaboration fails with 154 unknown module errors for `ihp_dff_r`, `ihp_mux2` and
+`ihp_mux4`.
 
 ### The FPGA path, also validated locally
 
@@ -580,7 +629,7 @@ docs/
   fpga/                           iCE40 utilisation and timing
   formal/                         SymbiYosys task results
   img/                            hand written SVGs, generated PNGs and GIFs,
-                                  and the routed layout render
+                                  and the two routed layout renders
 ```
 
 ## Honesty notes
@@ -598,10 +647,13 @@ Collected in one place so none of it has to be dug out of the prose:
 - The correct ring oscillator sample rate is a property of the fabricated
   silicon. `SAMP_FAST` and both cutoff selectors are runtime controls so it can
   be found on a bench.
-- The `gds`, `docs` and `fpga` **workflows** have not been run. The hardening
-  **flow** has, locally, with the same LibreLane version and PDK the `gds`
-  workflow uses. That is evidence the tile hardens; it is not a shuttle
-  submission, it did not pass Tiny Tapeout's precheck, and it is not taped out.
+- The tile is **hardened and DRC clean, not fabricated**. `gds`, `precheck`,
+  `viewer`, `docs` and `test` all pass in CI, which means it places, routes,
+  passes DRC and LVS, and clears Tiny Tapeout's precheck. It has not been
+  submitted to a shuttle and no silicon exists.
+- The `gl_test` job was removed because a ring oscillator cannot be simulated
+  against zero delay functional cell models. The reasoning and the measurements
+  are above rather than buried.
 - The ring oscillator frequency table is a hand calculation from Liberty delay
   tables with no interconnect. Real rings will be slower. It is not a measurement.
 - The FPGA build is unconstrained: no PCF, no output delay constraint. The

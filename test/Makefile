@@ -47,6 +47,10 @@ SIM_BUILD = sim_build/gl
 COMPILE_ARGS += -DGL_TEST
 COMPILE_ARGS += -DFUNCTIONAL
 COMPILE_ARGS += -DSIM
+# sg13g2_udp.v must come first: sg13g2_stdcell.v instantiates ihp_dff_r, ihp_mux2
+# and ihp_mux4 from it. The stock template omits it and elaboration fails with
+# 154 "Unknown module type" errors.
+VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog/sg13g2_udp.v
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_io/verilog/sg13g2_io.v
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog/sg13g2_stdcell.v
 # this gets copied in by the GDS action workflow
@@ -59,7 +63,14 @@ COMPILE_ARGS += -I$(SRC_DIR)
 VERILOG_SOURCES += $(CURDIR)/tb.v
 TOPLEVEL = tb
 
+# The gate level netlist gets a reduced module. See test/test_gl.py for why: the
+# full suite is 3.4 million pixel clocks and several of its tests check an entropy
+# path that does not exist in a netlist hardened with SIM_ENTROPY = 0.
+ifneq ($(GATES),yes)
 COCOTB_TEST_MODULES = test
+else
+COCOTB_TEST_MODULES = test_gl
+endif
 
 # cocotb's own rules. Guarded so that lint / ring / synth still work in a shell
 # where the venv has not been activated.

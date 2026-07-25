@@ -23,11 +23,38 @@ TAG="${HARDEN_TAG:-local}"
 RUN="runs/$TAG"
 TOP=tt_um_danieltyukov_vga_trng
 
+# KLayout DRC and XOR are single threaded unless told otherwise, and the maximal
+# sg13g2 DRC runset can take longer than every other stage combined. Compute a
+# default from the machine rather than hardcoding one, leaving two cores for
+# everything else. KLAYOUT_THREADS overrides it, which is what to use when
+# several place and route runs share a machine: oversubscribing cores across
+# concurrent runs is slower than running single threaded.
+NCPU="$(nproc 2>/dev/null || echo 4)"
+DEFAULT_THREADS=$(( NCPU > 3 ? NCPU - 2 : 1 ))
+THREADS="${KLAYOUT_THREADS:-$DEFAULT_THREADS}"
+
 if [ "${HARDEN_SKIP_FLOW:-0}" != "1" ]; then
-  echo "== librelane, tag $TAG =="
+  echo "== librelane, tag $TAG, KLayout threads $THREADS of $NCPU cores =="
+  mkdir -p build
+  # Merge the computed thread counts over the committed config. The committed file
+  # has to carry fixed numbers because it is JSON, so the computed values are
+  # applied here instead of being baked in.
+  python3 - "$THREADS" > build/harden_config.json <<'PYEOF'
+import json, sys, re, pathlib
+raw = pathlib.Path("hardening/config.json").read_text()
+# strip the "//" comment keys, which are legal for LibreLane but not for json.load
+# when duplicated, so load with a hook that keeps the last of each key
+cfg = json.loads(raw, object_pairs_hook=lambda pairs: {k: v for k, v in pairs})
+n = int(sys.argv[1])
+cfg["KLAYOUT_DRC_THREADS"] = n
+cfg["KLAYOUT_XOR_THREADS"] = n
+cfg.pop("//", None)
+json.dump(cfg, sys.stdout, indent=2)
+PYEOF
   # --design-dir is the repo root because LibreLane refuses to read files outside
-  # the design directory, and dir::../src would escape it.
-  librelane --design-dir . --run-tag "$TAG" hardening/config.json
+  # the design directory, and dir::../src would escape it. The generated config
+  # lives in build/, so dir:: still resolves from the repo root.
+  librelane --design-dir . --run-tag "$TAG" build/harden_config.json
 fi
 
 if [ ! -f "$RUN/final/metrics.json" ]; then
@@ -60,11 +87,30 @@ echo "== signoff summary =="
 
 python3 scripts/parse_harden.py "$RUN"
 
-echo "== layout render =="
-klayout -b -rm scripts/render_gds.py \
-  -rd gds="$RUN/final/gds/$TOP.gds" \
-  -rd out=docs/img/layout.png \
-  -rd w=1400 -rd h=1000
+echo "== layout renders =="
+# Two views on purpose. A full die view of a routed tile is close to unreadable
+# on its own, because every metal layer overlaps at that scale, so the full die
+# carries the outline, the pin frame and the power straps, and a 12 x 12 um box
+# near the centre carries the cell rows, contacts and routing.
+GDS="$RUN/final/gds/$TOP.gds"
+klayout -b -rm scripts/render_gds.py -rd gds="$GDS" \
+  -rd out=docs/img/layout.png -rd w=880 -rd h=1140
+klayout -b -rm scripts/render_gds.py -rd gds="$GDS" \
+  -rd out=docs/img/layout_detail.png -rd w=900 -rd h=900 -rd box=76,104,88,116
+# Recompress: KLayout writes uncompressed RGB, and the full die view lands over
+# Tiny Tapeout's 512 kB per image docs limit otherwise.
+python3 - <<'PYEOF'
+import pathlib
+try:
+    from PIL import Image
+except ImportError:
+    raise SystemExit("pillow not available, skipping recompression")
+for n in ("layout.png", "layout_detail.png"):
+    p = pathlib.Path("docs/img") / n
+    Image.open(p).convert("RGB").save(p, optimize=True)
+    print(f"  {n}: {p.stat().st_size // 1024} kB")
+PYEOF
 
 echo
-echo "wrote docs/hardening/{metrics.json,summary.json,signoff.txt} and docs/img/layout.png"
+echo "wrote docs/hardening/{metrics.json,summary.json,signoff.txt}"
+echo "wrote docs/img/{layout.png,layout_detail.png}"
