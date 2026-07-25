@@ -21,60 +21,82 @@ of the cocotb regression. Raw reports are in [synth/](synth/).
 
 ## 1. Area budget and the tile decision
 
+### First, what a tile actually is
+
+The project template says in an `info.yaml` comment that "a single tile is about
+167x108 uM". For this shuttle that is wrong, and an earlier version of this
+document repeated it. Tiny Tapeout's own floorplan templates,
+`tt/tech/ihp-sg13g2/def/tt_block_NxM_pgvdd.def`, are the DEF files their `gds`
+action hands the floorplanner, and they give:
+
+| tiles | die | area |
+| --- | --- | --- |
+| 1x1 | 202.08 x 154.98 um | 31318 um2 |
+| 1x2 | 202.08 x 313.74 um | 63401 um2 |
+
+74% more per tile than the comment. Everything below is against the real numbers.
+
 ### The measurement
 
 Three points in the flow, all on the real `sg13g2` library:
 
-| stage | cell area | cells | tool |
-| --- | --- | --- | --- |
-| post synthesis | 18040 um2 | 1288, 142 flip-flops | Yosys 0.33 `stat -liberty` |
-| **post route, real cells** | **25940.5 um2** | **1767** | LibreLane 3.0.0.dev44 |
-| post route, plus fill | 33430.3 um2 | 2965 instances | same run |
+| stage | cell area | cells | fraction of a 1x1 tile | tool |
+| --- | --- | --- | --- | --- |
+| post synthesis | 18040 um2 | 1288, 142 flip-flops | 57.6% | Yosys 0.33 `stat -liberty` |
+| **post route, real cells** | **25887.9 um2** | **1771** | **82.7%** | LibreLane 3.0.0.dev44 |
+| post route, plus fill | 28941.5 um2 | 2343 instances | 92.4% | same run |
 
-A Tiny Tapeout tile on the IHP shuttle is about 167 x 108 um, so 18036 um2. The
-post route figure is the one that decides the tile count:
+Synthesis says this fits a 1x1 tile comfortably. Post route it is 82.7% of the
+tile, which by the usual rule of thumb says it does not fit at all: LibreLane and
+`src/config.json` both target 60% placement density. Neither number is the
+answer. The answer is to run it:
 
-| tiles | die area | post route real cells as a fraction | verdict |
-| --- | --- | --- | --- |
-| 1x1 | 18036 um2 | **143.8%** | more cell area than die: impossible |
-| 1x2 | 36072 um2 | **71.9%** | hardened, routed, DRC and LVS clean |
+| `PL_TARGET_DENSITY_PCT` | outcome |
+| --- | --- |
+| 60, the default | global placement refuses: `[GPL-0302]`, 64.2% core utilisation, suggested 0.65 |
+| 80 | places, then detailed placement fails after CTS with `[DPL-0036]`, 10 instances cannot be legalised once 234 hold buffers are in |
+| **85** | **places, routes, signs off: 0 route/magic/klayout DRC, 0 LVS, 0 antenna, +17.45 ns setup, +0.15 ns hold** |
 
-That is not a marginal call. There is half again as much silicon in the cells as
-there is tile to put them in, before a single wire is routed. `tiles: "1x2"`.
+So `tiles: "1x1"`, with `PL_TARGET_DENSITY_PCT` raised to 85 in
+`src/config.json`. That file invites exactly one edit, that key, for exactly the
+`GPL-0302` error, and the three rows above are recorded next to it.
 
-The post synthesis number would have suggested 1x1 needs exactly 100.0% density,
-which is already impossible (no room for filler, the power distribution network,
-or router detours, and `src/config.json` targets 60%). But it understates the
-problem by 44 percentage points, and it is worth understanding why.
+### What it costs
+
+A 1x2 die was hardened for comparison (`make harden` with
+`HARDEN_DIE="202.08 313.74"`). At 40.9% density it routes with **41781 um** of
+wire; the 1x1 needs **69427 um**, 66% more, all of it detours around congestion.
+Setup slack barely moves, +17.50 ns against +17.45 ns, because this design is slow
+relative to the process. On a design with real timing pressure that wirelength is
+where the tile would be lost, and 1x2 would be the right call.
 
 ### What synthesis does not tell you
 
-7900 um2 appears between synthesis and route, 44% on top of the synthesis
-estimate:
+7850 um2 appears between synthesis and route, 44% on top of the synthesis
+estimate, and it is the whole difference between 57.6% and 82.7% of a tile:
 
 | class | area | count | what it is |
 | --- | --- | --- | --- |
-| multi-input combinational | 11403.5 um2 | 1161 | the logic |
-| sequential | 7076.2 um2 | 142 | the flip-flops |
-| **timing repair buffers** | **5846.0 um2** | **338**, 233 of them hold buffers | inserted after placement |
+| multi-input combinational | 11363.6 um2 | 1161 | the logic |
+| sequential | 7078.0 um2 | 142 | the flip-flops |
+| **timing repair buffers** | **5831.5 um2** | **342**, 240 of them hold buffers | inserted after placement |
 | clock buffers and inverters | 1246.5 um2 | 65 | the clock tree, which synthesis does not build |
 | inverters and buffers | 368.3 um2 | 61 | drive strength fixes |
-| fill | 7489.8 um2 | 1198 | occupies whatever is left |
+| fill | 3053.6 um2 | 572 | occupies whatever is left |
 
-Hold fixing alone is 5846 um2, 23% of the real cell area, and none of it exists
+Hold fixing alone is 5831 um2, 23% of the real cell area, and none of it exists
 until after placement. Anyone sizing a Tiny Tapeout tile from a `yosys stat`
 number is going to be roughly 40% optimistic. That is the single most useful
 thing this project measured.
 
 ![Per submodule area and the tile budget](img/synth_area.png)
 
-### What optimising would have to remove
+### What it would take to get the density down
 
-Working from the post synthesis per-module numbers, reaching 60% density on a
-single tile means getting to 10822 um2, which is 7218 um2 less than the design is
-now. (Post route the target is harsher still, because CTS and hold fixing add
-their 7900 um2 on top of whatever synthesis produces.)
-The only two blocks big enough to matter are the two that hold state:
+The tile fits at 82.7%, which is dense enough that the placer has to be told to
+expect it, so it is worth knowing where the slack would come from if a future
+change pushed it over. The only two blocks big enough to matter are the two that
+hold state:
 
 ```
 pat_rule30   4209 um2   40 flops
@@ -83,25 +105,20 @@ pat_ball     3346 um2   22 flops
              7555 um2
 ```
 
-Deleting both leaves 10485 um2 post synthesis, which is 58.1% density on a 1x1
-tile: it clears the 60% target by 337 um2, roughly seven flip-flops' worth of
-slack. And that is before CTS and hold fixing add their share, which measured on
-the full design was 44% on top of synthesis. Applied to 10485 um2 that is about
-15100 um2, or 84% of a single tile, which does not place either.
+Dropping both takes post synthesis area from 18040 um2 to 10485 um2, and applying
+the measured 44% post route growth gives roughly 15100 um2, about 48% of a tile.
+That is comfortable, and the price is both animated patterns, the collision
+behaviour, and the only genuinely iterated pattern in the design. It is not a
+trade worth making while 85% density signs off clean, but it is the lever.
 
-So the price of a 1x1 tile is both animated patterns, the collision behaviour,
-and the only genuinely iterated pattern in the design, in exchange for a fit that
-the post route measurement says would still not work. Not a trade worth making.
-
-Smaller savings were considered and rejected because none of them changes the
-conclusion:
+Smaller savings that were considered:
 
 - The 8:1 mux over eight concurrent generators could be time multiplexed. Six of
   the eight are pure functions of the pixel position with no state to serialise,
   so the sequencing logic and pipeline registers would cost more than the
   combinational logic saved.
-- `pat_rule30` could drop to 20 cells of 32 pixels, saving roughly 2000 um2. That
-  gets 1x1 to about 89% density: still impossible, and the diagram gets chunkier.
+- `pat_rule30` could drop to 20 cells of 32 pixels, saving roughly 2000 um2, which
+  is about 6 percentage points of density. The diagram gets chunkier.
 - `health_monitor` (2368 um2) is 13% of the design and could be dropped. It is
   one of the reasons this project exists.
 
@@ -661,16 +678,17 @@ is a separate `make -C test capture` target for that reason, about 15 minutes fo
 
 `make harden` runs LibreLane **3.0.0.dev44** with `pdk: ihp-sg13g2`, which is
 exactly the version and PDK `TinyTapeout/tt-gds-action@ttihp26a` pins. So this is
-the shuttle hardening flow, not a stand-in for it. What it is not is a shuttle
-submission: Tiny Tapeout's precheck and their harness integration still need
-their infrastructure, and this tile has passed neither.
+the shuttle hardening flow, not a stand-in for it. The `gds` workflow runs their
+version of it on every push and passes, including their own `precheck`. What
+neither is is a shuttle submission: that and fabrication are separate steps this
+repository does not perform.
 
 ![Routed layout](img/layout.png)
 
-The die is fixed at 167 x 216 um in `hardening/config.json`, exactly the 1x2 tile
-footprint `info.yaml` declares. Fixing it rather than letting the floorplanner
-choose is the point: it makes the run answer "does it fit in the area I claimed"
-instead of "what area would it like".
+The die is fixed at 202.08 x 154.98 um in `hardening/config.json`, which is Tiny
+Tapeout's own 1x1 tile from `tt_block_1x1_pgvdd.def`. Fixing it rather than
+letting the floorplanner choose is the point: it makes the run answer "does it fit
+the tile I claimed" instead of "what area would it like".
 
 ### Signoff
 
@@ -679,18 +697,20 @@ route DRC 0    magic DRC 0    klayout DRC 0    LVS 0
 antenna 0 nets, 0 pins        power grid 0     unmapped cells 0
 max slew 0     max cap 0      setup TNS 0      hold TNS 0
 
-setup worst slack    17.5583 ns   at a 39.722 ns period
-hold worst slack      0.1168 ns
-clock skew            0.0327 ns   network latency 0.68 to 0.72 ns
-power                 0.3440 mW
-wirelength              38024 um
+die area            31318.4 um2   202.08 x 154.98
+real cell area      25887.9 um2   1771 cells, 82.7% density
+setup worst slack    17.4537 ns   at a 39.722 ns period
+hold worst slack      0.1535 ns
+clock skew            0.2733 ns
+power                 0.3507 mW
+wirelength              69427 um
 ```
 
 | corner | setup worst slack | hold worst slack |
 | --- | --- | --- |
-| slow 1.08 V 125 C | +17.5583 ns | +0.6219 ns |
-| typ 1.20 V 25 C | +18.3220 ns | +0.3024 ns |
-| fast 1.32 V -40 C | +18.7628 ns | +0.1168 ns |
+| slow 1.08 V 125 C | +17.4537 ns | +0.7188 ns |
+| typ 1.20 V 25 C | +18.2674 ns | +0.3631 ns |
+| fast 1.32 V -40 C | +18.7310 ns | +0.1535 ns |
 
 ### The SDC is real, which is the only reason those numbers mean anything
 
@@ -713,12 +733,12 @@ run log. Every number in it is justified in place:
 
 ### Post synthesis versus post route timing
 
-`make sta` reports a slow corner Fmax of 169 MHz; the hardened run has 17.56 ns
-of slack at 39.722 ns. Both are in the repo because they measure different
-things. Post synthesis STA estimates interconnect from the liberty wireload
-model and has no clock tree and no hold buffers. The hardened number has
-extracted parasitics, a real 65 cell clock tree, and 233 hold buffers. Quoting
-only the flattering one would be the easy mistake.
+`make sta` reports a slow corner Fmax of 169 MHz; the hardened run has 17.45 ns
+of slack at 39.722 ns, which is 44.9 MHz. Both are in the repo because they
+measure different things. Post synthesis STA estimates interconnect from the
+liberty wireload model and has no clock tree and no hold buffers. The hardened
+number has extracted parasitics, a real 65 cell clock tree, and 240 hold buffers.
+Quoting only the flattering one would be the easy mistake.
 
 ### The one violation that is not clean
 
@@ -795,21 +815,33 @@ to let a bench adjust once the real frequency is known.
 - **The ring oscillator sample rate is a guess until measured.** `SAMP_FAST` and
   the two cutoff selectors exist so the right values can be found on a bench
   rather than being frozen in the RTL.
-- **Gate level simulation only covers part of this.** The hardened netlist has no
-  parameters, so `make -B GATES=yes` exercises the ring oscillator path. The VGA
-  timing and reset tests are meaningful there; the entropy pipeline tests are not,
-  because they need the deterministic source.
-- **The `gds`, `docs` and `fpga` workflows are unvalidated here**, because they
-  need Tiny Tapeout's own actions and shuttle containers. The hardening flow the
-  `gds` workflow wraps has been run locally at the same version on the same PDK,
-  which is evidence the tile hardens, not evidence it would be accepted by a
-  shuttle. Precheck and harness integration are untested.
-- **The hardening die is not Tiny Tapeout's tile geometry.** 167 x 216 um is the
-  1x2 footprint, which is the right question to ask of this design, but their
-  harness reserves part of a tile for its own pin frame and routing and this run
-  does not model that. Expect the usable area to be somewhat smaller in their
-  flow.
+- **Gate level simulation does not cover the oscillators.** `make gl` runs the
+  whole regression against the hardened netlist, but only because `test/tb.v`
+  forces both ring chains to a static value: the IHP cell models are zero delay, so
+  a live ring stops the simulator's timewheel dead. With the rings cut, the
+  sampled oscillator bit is a constant 0 and the entropy path behaves exactly as
+  `SIM_ENTROPY = 1` does, which `test/test_gl.py` asserts rather than assumes. The
+  oscillator path itself is covered structurally by `test/tb_ring.v` and by the
+  stage counts that `make synth` and `make harden` enforce, and not at all at gate
+  level.
+- **CI proves the tile hardens, not that it would be accepted by a shuttle.** All
+  four `gds` jobs pass, including Tiny Tapeout's own `precheck`, so it places,
+  routes, passes DRC and LVS and clears their submission checks on a plain runner.
+  Submission and fabrication are separate steps this repository does not perform,
+  and harness integration is untested.
+- **The local hardening die is the right size but not the right floorplan.**
+  202.08 x 154.98 um is Tiny Tapeout's own 1x1 tile area, but `make harden` only
+  fixes `DIE_AREA`; their `gds` job starts from `tt_block_1x1_pgvdd.def`, which
+  also carries the harness pin frame and power grid obstructions. Their flow runs
+  on every push and passes, so the difference is not hypothetical, but the two are
+  not the same floorplan.
+- **The design fits 1x1 with little room to spare.** 82.7% post route density, and
+  placement fails outright at a 60% or 80% target. A future change of any size
+  needs the density rechecked, not assumed.
 - **One max fanout violation remains** on the clock tree root buffer, documented
   in section 7 with both attempts to remove it.
-- **The FPGA flow needs `SIM_ENTROPY=1`.** Yosys' ice40 target will not synthesise
-  a combinational loop.
+- **The FPGA build has no ring oscillators.** `nextpnr-ice40` refuses any design
+  containing a combinational loop, so `tt_fpga.py`'s `-DSYNTH` selects the external
+  entropy path in `src/entropy_source.v`. That is the correct build for an FPGA
+  regardless, since routed LUTs cannot host a usable ring oscillator TRNG, but it
+  means the `fpga` bitstream has no noise source of its own.

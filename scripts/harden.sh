@@ -109,7 +109,7 @@ echo "== layout renders =="
 # near the centre carries the cell rows, contacts and routing.
 GDS="$RUN/final/gds/$TOP.gds"
 klayout -b -rm scripts/render_gds.py -rd gds="$GDS" \
-  -rd out=docs/img/layout.png -rd w=880 -rd h=1140
+  -rd out=docs/img/layout.png -rd w=1240 -rd h=980
 klayout -b -rm scripts/render_gds.py -rd gds="$GDS" \
   -rd out=docs/img/layout_detail.png -rd w=900 -rd h=900 -rd box=76,104,88,116
 # Recompress: KLayout writes uncompressed RGB, and the full die view lands over

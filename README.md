@@ -9,16 +9,17 @@ tests. Output goes straight to a TinyVGA PMOD.
 [![test](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/test.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/test.yaml)
 [![gds](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/gds.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/gds.yaml)
 [![docs](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/docs.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/docs.yaml)
+[![fpga](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/fpga.yaml/badge.svg)](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/workflows/fpga.yaml)
 
 | | |
 | --- | --- |
 | Top module | `tt_um_danieltyukov_vga_trng` |
-| Tiles | `1x2` ([why](#area-and-the-tile-decision)) |
+| Tiles | `1x1` ([why](#area-and-the-tile-decision)) |
 | Clock | 25.175 MHz pixel clock, 640x480 at 59.9405 Hz |
-| Hardened | LibreLane 3.0.0.dev44 on ihp-sg13g2: 25940 um2 of cells in a 167x216 um die, **DRC and LVS clean** |
-| Timing | setup +17.56 ns post route at 39.722 ns, all three corners. Fmax 169 MHz at the slow corner |
+| Hardened | LibreLane 3.0.0.dev44 on ihp-sg13g2: 25888 um2 of cells in a 202.08 x 154.98 um tile, 82.7% density, **DRC and LVS clean** |
+| Timing | post route setup +17.45 ns at 39.722 ns on all three corners, so 44.9 MHz at the slow corner against the 25.175 MHz the design needs |
 | External hardware | [TinyVGA PMOD](https://github.com/mole99/tiny-vga) |
-| Regression | 11 cocotb tests, 2.5 million pixels compared, all passing |
+| Regression | 11 cocotb tests, 2.5 million pixels compared, passing at RTL and again on the hardened gate level netlist |
 | Formal | debiaser symmetry and sync counter invariants proved with SymbiYosys, mutation checked |
 
 ## The hardened tile
@@ -26,7 +27,7 @@ tests. Output goes straight to a TinyVGA PMOD.
 | | |
 | --- | --- |
 | ![Full die](docs/img/layout.png) | ![Detail, 12 x 12 um](docs/img/layout_detail.png) |
-| The whole die, 167 x 216 um. Die outline, the pin frame around the edge, and the four vertical VPWR/VGND power straps. | A 12 x 12 um box near the centre at the same scale a designer would inspect: standard cell rows with their power rails, contacts, and metal2 routing between cells. |
+| The whole tile, 202.08 x 154.98 um, packed to 82.7% standard cell density. Die outline, the pin frame around the edge, and the five vertical VPWR/VGND power straps. | A 12 x 12 um box near the centre at the same scale a designer would inspect: standard cell rows with their power rails, contacts, and metal2 routing between cells. |
 
 **[Open the layout in the 3D chip viewer](https://gds-viewer.tinytapeout.com/?model=https://danieltyukov.github.io/tt-ihp-vga-trng/tinytapeout.oas&pdk=ihp-sg13g2)**
 &nbsp;&nbsp;rotate and zoom the actual layout in a browser. Published to GitHub
@@ -34,18 +35,20 @@ Pages by the `viewer` job in [`gds.yaml`](.github/workflows/gds.yaml).
 
 Hardened with **LibreLane 3.0.0.dev44** on `ihp-sg13g2`, the same tool version and
 PDK that `TinyTapeout/tt-gds-action@ttihp26a` pins, both locally via `make harden`
-and in CI. Signoff from that run:
+and in CI. Signoff from the local run, which unlike theirs also runs KLayout DRC
+and constrains timing from a real SDC:
 
 | | | | |
 | --- | --- | --- | --- |
-| die area | **36072 um2** (167 x 216) | route DRC | **0** |
-| real cell area | **25940.5 um2**, 1767 cells | magic DRC | **0** |
-| fill cells | 7489.8 um2, 1198 cells | klayout DRC | **0** |
-| setup worst slack | **+17.5583 ns** at 39.722 ns | LVS | **0** |
-| hold worst slack | +0.1168 ns | antenna | **0** nets, **0** pins |
-| clock skew | 0.0327 ns | power grid | **0** |
-| power | 0.3440 mW | unmapped cells | **0** |
-| wirelength | 38024 um | max slew / max cap | **0** / **0** |
+| die area | **31318 um2** (202.08 x 154.98) | route DRC | **0** |
+| real cell area | **25887.9 um2**, 1771 cells | magic DRC | **0** |
+| density | **82.7%** | klayout DRC | **0** |
+| fill cells | 3053.6 um2, 572 cells | LVS | **0** |
+| setup worst slack | **+17.4537 ns** at 39.722 ns | antenna | **0** nets, **0** pins |
+| hold worst slack | +0.1535 ns | power grid | **0** |
+| clock skew | 0.2733 ns | unmapped cells | **0** |
+| power | 0.3507 mW | max slew / max cap | **0** / **0** |
+| wirelength | 69427 um | setup / hold TNS | **0** / **0** |
 
 Tiny Tapeout's own **`precheck` job passes** on this repository, so the tile
 clears their submission checks.
@@ -266,66 +269,98 @@ output once the source has failed" rule.
 
 ![Per submodule area and tile budget](docs/img/synth_area.png)
 
-Three numbers, from three different points in the flow, all on the real
-`sg13g2` library from
+**Start with the tile, because the number everyone quotes for it is wrong.** The
+Tiny Tapeout project template says, in a comment in `info.yaml`, that "a single
+tile is about 167x108 uM". For this shuttle it is not. Tiny Tapeout's own
+floorplan templates in `tt-support-tools`, which are the DEF files their `gds`
+action hands the floorplanner, give:
+
+| tiles | die | area |
+| --- | --- | --- |
+| 1x1 | 202.08 x 154.98 um | 31318 um2 |
+| 1x2 | 202.08 x 313.74 um | 63401 um2 |
+
+74% more area per tile than the comment. An earlier version of this repository
+sized the design against 18036 um2 and concluded, with confident arithmetic, that
+a 1x1 tile was impossible. It was measuring against the wrong tile.
+
+Against the real one, three numbers from three points in the flow, all on the
+real `sg13g2` library from
 [IHP-Open-PDK](https://github.com/IHP-GmbH/IHP-Open-PDK):
 
-| stage | cell area | tool |
-| --- | --- | --- |
-| post synthesis | 18040 um2, 1288 cells, 142 flip-flops | Yosys 0.33, `stat -liberty` |
-| post route, real cells | **25940 um2, 1767 cells** | LibreLane 3.0.0.dev44 |
-| post route, plus fill | 33430 um2, 2965 instances | same run |
-
-The post route figure is the one that decides the tile count, and it settles the
-question outright:
-
-| tiles | die area | post route cells as a fraction | verdict |
+| stage | cell area | as a fraction of a 1x1 tile | tool |
 | --- | --- | --- | --- |
-| 1x1 | 18036 um2 | **143.8%** | impossible: more cell area than there is die |
-| 1x2 | 36072 um2 | **71.9%** | hardened, routed, DRC and LVS clean |
+| post synthesis | 18040 um2, 1288 cells, 142 flip-flops | 57.6% | Yosys 0.33, `stat -liberty` |
+| post route, real cells | **25888 um2, 1771 cells** | **82.7%** | LibreLane 3.0.0.dev44 |
+| post route, plus fill | 28941 um2, 2343 instances | 92.4% | same run |
 
-A 1x1 tile is not a tight fit for this design, it is arithmetically ruled out.
-There is half again as much silicon in the cells as there is tile to put them in,
-before a single wire is routed.
+Synthesis says this fits a 1x1 tile comfortably. Post route it is 82.7% of the
+tile, which by the usual rule of thumb says it does not fit at all: LibreLane and
+`src/config.json` both target 60% placement density. The rule of thumb is not the
+answer either. The answer is to run it, and the answer is that it fits, but only
+just:
 
-Where the 7900 um2 between synthesis and route goes is worth knowing, because it
-is the part a synthesis-only estimate misses entirely:
+| target density | what happens |
+| --- | --- |
+| 60, the default | global placement refuses: `[GPL-0302]` at 64.2% core utilisation, suggested 0.65 |
+| 80 | places, then detailed placement fails after CTS with `[DPL-0036]`, unable to legalise 10 instances once 234 hold buffers are in |
+| **85** | **places, routes, and signs off with 0 DRC (route, magic and klayout), 0 LVS, 0 antenna, +17.45 ns setup and +0.15 ns hold** |
+
+`src/config.json` invites exactly one edit, `PL_TARGET_DENSITY_PCT`, for exactly
+the `GPL-0302` error, so that is the one thing changed there, and the three
+measurements above are written next to it. `tiles: "1x1"`.
+
+It costs something. A 1x2 die was hardened for comparison, `make harden` with
+`HARDEN_DIE="202.08 313.74"`, and at 40.9% density it routes with **41781 um** of
+wire against **69427 um** for the 1x1: 66% more wire to fit the same logic in half
+the area, all of it router detours around congestion. Timing barely notices
+(+17.50 ns against +17.45 ns of setup slack) because the design is slow relative
+to the process, but on a faster design that wirelength is where the tile would be
+lost.
+
+Where the 7850 um2 between synthesis and route goes is the part a synthesis-only
+estimate misses entirely, and here it is the difference between 57.6% and 82.7%:
 
 | class | area | count |
 | --- | --- | --- |
-| multi-input combinational | 11404 um2 | 1161 |
-| sequential (flip-flops) | 7076 um2 | 142 |
-| timing repair buffers | 5846 um2 | 338, of which 233 are hold buffers |
+| multi-input combinational | 11364 um2 | 1161 |
+| sequential (flip-flops) | 7078 um2 | 142 |
+| timing repair buffers | 5831 um2 | 342, of which 240 are hold buffers |
 | clock tree buffers and inverters | 1247 um2 | 65 |
 | inverters and buffers | 368 um2 | 61 |
-| fill | 7490 um2 | 1198 |
+| fill | 3054 um2 | 572 |
 
-Hold fixing alone is 5846 um2, 23% of the real cell area. Anyone sizing a Tiny
-Tapeout tile from a `yosys stat` number is going to be about 40% optimistic.
+Hold fixing alone is 5831 um2, 23% of the real cell area, and none of it exists
+until after placement. Anyone sizing a Tiny Tapeout tile from a `yosys stat`
+number is going to be about 40% optimistic.
 
 `make synth` fails the build on any blackbox, any inferred latch, or any ring
 oscillator stage lost to the optimiser. `scripts/check_area.py`, which the CI
 synth job runs, compares a fresh report against the committed one within 2% and
-independently re-derives the required tile count from the measured area, so the
-`tiles` field in `info.yaml` cannot drift away from the measurement. Reports are
-committed in [docs/synth/](docs/synth/) and [docs/hardening/](docs/hardening/).
+re-derives the tile count twice, once from the synthesis estimate and once from
+the hardened die, so the `tiles` field in `info.yaml` cannot drift away from the
+measurement. Reports are committed in [docs/synth/](docs/synth/) and
+[docs/hardening/](docs/hardening/).
 
 ## Hardening and timing closure
 
-The `gds` workflow needs Tiny Tapeout's shuttle infrastructure, but the
-hardening flow itself does not: LibreLane **3.0.0.dev44** with `pdk:
-ihp-sg13g2` is exactly what `TinyTapeout/tt-gds-action@ttihp26a` pins, so
-`make harden` runs the shuttle flow rather than an approximation of it.
+`make harden` runs LibreLane **3.0.0.dev44** with `pdk: ihp-sg13g2`, exactly what
+`TinyTapeout/tt-gds-action@ttihp26a` pins, so it is the shuttle flow rather than
+an approximation of it. It differs from the `gds` job in two ways, both
+deliberate: it fixes the clock at the 39.722 ns the design actually needs instead
+of the template's 20 ns, it constrains the boundary from a real SDC instead of
+LibreLane's generic fallback, and it runs KLayout DRC, which
+[`src/config.json`](src/config.json) turns off to save shuttle time.
 
 ```
-die area            36072.0 um2   167 x 216, the 1x2 tile footprint
-real cell area      25940.5 um2   1767 cells
-fill cells           7489.8 um2   1198 cells
-setup worst slack    17.5583 ns   at a 39.722 ns period
-hold worst slack      0.1168 ns
-clock skew            0.0327 ns   network latency 0.68 to 0.72 ns
-power                 0.3440 mW
-wirelength              38024 um
+die area            31318.4 um2   202.08 x 154.98, one 1x1 tile
+real cell area      25887.9 um2   1771 cells, 82.7% density
+fill cells           3053.6 um2   572 cells
+setup worst slack    17.4537 ns   at a 39.722 ns period
+hold worst slack      0.1535 ns
+clock skew            0.2733 ns
+power                 0.3507 mW
+wirelength              69427 um
 
 route DRC 0    magic DRC 0    klayout DRC 0    LVS 0
 antenna 0 nets, 0 pins        power grid 0     unmapped cells 0
@@ -336,9 +371,9 @@ Post route timing at all three corners LibreLane signs off on:
 
 | corner | setup worst slack | hold worst slack |
 | --- | --- | --- |
-| slow 1.08 V 125 C | +17.5583 ns | +0.6219 ns |
-| typ 1.20 V 25 C | +18.3220 ns | +0.3024 ns |
-| fast 1.32 V -40 C | +18.7628 ns | +0.1168 ns |
+| slow 1.08 V 125 C | +17.4537 ns | +0.7188 ns |
+| typ 1.20 V 25 C | +18.2674 ns | +0.3631 ns |
+| fast 1.32 V -40 C | +18.7310 ns | +0.1535 ns |
 
 Those numbers are measured against [`hardening/constraints.sdc`](hardening/constraints.sdc),
 a real SDC, not the generic fallback LibreLane substitutes when
@@ -365,10 +400,13 @@ at the slow corner, running from a `vga_sync` counter flop through the `gen_end`
 term into the rule 30 row register. `scripts/parse_sta.py` fails the run if setup
 does not close at the signoff corner, so the `clock_hz` claim cannot silently rot.
 
-The post synthesis Fmax (169 MHz) is higher than the post route slack implies
-because post synthesis STA estimates interconnect from the liberty wireload
-model, while the hardened number includes extracted parasitics, the real clock
-tree and the hold buffers. Both are reported rather than just the flattering one.
+Those are post synthesis numbers. The post route ones are lower, and the honest
+comparison is the pair: the same slow corner gives +33.81 ns of setup slack after
+synthesis and +17.45 ns after routing, so Fmax at that corner falls from 169.13
+MHz to **44.86 MHz**. Post synthesis STA estimates interconnect from the liberty
+wireload model, while the hardened number carries extracted parasitics, the real
+clock tree and 240 hold buffers. Both are reported rather than just the flattering
+one. Either way 25.175 MHz closes, with 1.78x of margin on the routed design.
 
 ### One violation that is not clean, stated plainly
 
@@ -412,6 +450,7 @@ Everything runs through a repo local venv, so no shell activation is needed.
 ```sh
 make venv     # create .venv and install test/requirements.txt
 make test     # the cocotb regression, about 6 minutes
+make gl       # the same regression on the hardened gate level netlist
 make lint     # verilator --lint-only -Wall, zero warnings expected
 make ring     # ring oscillator structural testbench, plain Icarus
 make synth    # Yosys area report against the real IHP liberty (needs network once)
@@ -440,16 +479,17 @@ run those first. `make capture` is a further 64 frames of simulation, about 16
 minutes; those frames are verified against the model too, so it is a test as well
 as an image source.
 
-Gate level simulation, once the netlist exists:
+Gate level simulation, once a hardened netlist exists:
 
 ```sh
-cp runs/wokwi/results/final/verilog/gl/tt_um_danieltyukov_vga_trng.v test/gate_level_netlist.v
-make -C test -B GATES=yes
+./scripts/run_gl.sh                 # newest netlist from make harden
+./scripts/run_gl.sh path/to/nl.v    # or a specific one
 ```
 
-The hardened netlist has no parameters, so GL simulation exercises the ring
-oscillator path. The VGA timing and reset tests are meaningful there; the entropy
-pipeline tests are not, because they need the deterministic source.
+That runs the same regression against the netlist. It is a script rather than a
+bare `make -B GATES=yes` because it has to unpack Tiny Tapeout's patched Icarus
+first; see [below](#gate-level-the-same-suite-on-the-hardened-netlist) for why a
+stock Icarus reports nothing at all here.
 
 ### What the test suite actually asserts
 
@@ -466,6 +506,10 @@ pipeline tests are not, because they need the deterministic source.
 | `test_health_apt` | fires on 60-of-64 bias at three cutoffs, ignores it at 62, no false positive on 4096 fair samples, repetition flag clear throughout |
 | `test_health_sticky` | flag survives 256 healthy samples, gates the output on the 126 clocks where the LFSR bit was 1, clears on demand, then ungates |
 | `test_trng_statistics` | bias within bound, runs distribution sane, byte chi-square under bound, no health test fires on fair input |
+
+Every one of those runs twice: at RTL, and again against the hardened gate level
+netlist in the `gl_test` job, where it is checking that synthesis, placement,
+clock tree insertion and routing did not change what the design does.
 
 Plus `test/tb_ring.v` with 12 structural checks on the ring oscillator path, and
 `test/capture.py` with 64 further model-verified frames.
@@ -511,83 +555,142 @@ covered by simulation only.
 | workflow | jobs | status here |
 | --- | --- | --- |
 | `test.yaml` | lint, ring, cocotb, synth | **passing**, badge above |
-| `gds.yaml` | gds, precheck, viewer | **passing**, badge above |
+| `gds.yaml` | gds, precheck, gl_test, viewer | **passing**, badge above |
 | `docs.yaml` | datasheet render | **passing**, badge above |
-| `fpga.yaml` | ice40 bitstream | off by default (`branches: none`), as in the template. The flow it wraps is validated locally, see below |
+| `fpga.yaml` | ice40 bitstream | **passing**, badge above. Enabled, which the template leaves off |
 
 All of these run on plain `ubuntu-24.04` runners with no secrets and no Tiny
-Tapeout API access. There is no badge for `fpga.yaml` because it never runs on
-push, so a badge would report nothing.
+Tapeout API access.
 
-### The gl_test job was removed, and why
+### Gate level: the same suite on the hardened netlist
 
-The template's `gds.yaml` ships a fourth job, `gl_test`, which re-runs the
-testbench against the hardened gate-level netlist. It is **removed here**, not
-silently disabled, because it cannot pass for this design:
+`gl_test` re-runs the cocotb regression against the post place and route netlist.
+That catches anything synthesis, clock tree insertion or routing changed about the
+design, which RTL simulation by construction cannot see. It sat `in_progress` for
+1h51m and was deleted from this workflow once. Two things had to be dealt with to
+get it back, and both are specific to this design rather than to CI.
 
-`src/ring_osc.v` is a deliberate combinational loop and it has to survive
-synthesis for the TRNG to exist at all, so the hardened netlist contains a five
-inverter and a seven inverter ring. The IHP functional cell models are zero delay
-(`sg13g2_inv_1` is `not (Y, A);` with a `0.0` specify block), so once `rst_n`
-releases and the enable gate opens, an event driven simulator has a zero delay
-feedback loop and stops advancing in time.
+**The flops never clock under a stock Icarus.** `sg13g2_dfrbpq_1` does not clock
+from `CLK`, it clocks from `delayed_CLK`, which is the signal its `$setuphold` and
+`$recrem` timing checks produce:
 
-Measured locally rather than assumed: the netlist elaborates, `uio_oe` reads the
-correct `0b11100000` through the tie cells, simulation runs normally while `rst_n`
-is low and the ring is gated off, and then makes no further progress. On this
-repository the job sat `in_progress` for 1h51m before removal.
+```verilog
+ihp_dff_r (int_fwire_IQ, notifier, delayed_CLK, delayed_D, int_fwire_r, xcr_0);
+...
+$setuphold (posedge CLK, posedge D, 0.0, 0.0, notifier,,, delayed_CLK, delayed_D);
+```
 
-This is inherent to gate level simulation of any ring oscillator against zero
-delay models, not something fixable in the RTL. What covers the same ground
-instead: the 11 test cocotb suite at RTL, `test/tb_ring.v` for the oscillator
-path structurally, and the surviving-stage-count check in `make synth` which
-fails the build if the optimiser collapses either ring.
+Icarus 12 prints `warning: Timing checks are not supported and delayed signal
+"delayed_CLK" will not be driven` and carries on, so every flop in the design
+holds `x` forever. The netlist elaborates, the simulation runs, and it verifies
+nothing. Tiny Tapeout's patched Icarus 13 drives those signals, and their
+`gl_test` action installs it; `scripts/run_gl.sh` unpacks the same `.deb` under
+`build/` rather than installing it, so the system Icarus is left alone.
 
-`test/Makefile` still supports `make -B GATES=yes`, including a fix the stock
-template needs: `sg13g2_udp.v` has to be read before `sg13g2_stdcell.v` or
-elaboration fails with 154 unknown module errors for `ihp_dff_r`, `ihp_mux2` and
-`ihp_mux4`. It runs [`test/test_gl.py`](test/test_gl.py), which checks the part
-that is simulatable and passes: the netlist elaborates against the PDK models,
-`uio_oe` reads exactly `0b11100000` through the tie cells, and time advances
-normally while `rst_n` is low and the ring is gated off. It logs the unresolved
-`uo_out` as an observation rather than asserting either way about it.
+**The ring oscillators stop time.** `src/ring_osc.v` is a deliberate combinational
+loop and it has to survive synthesis for the TRNG to exist, so the netlist holds a
+five inverter and a seven inverter ring. The IHP cell models are zero delay
+(`sg13g2_inv_1` is `not (Y, A);` with a `0.0` specify block), so the moment `rst_n`
+releases and the enable NAND opens, the simulator has a zero delay feedback loop
+and makes no further progress. That is inherent to gate level simulation of any
+ring oscillator against zero delay models and is not fixable in the RTL, because
+the loop is the design.
 
-### The FPGA path, also validated locally
+[`test/tb.v`](test/tb.v) cuts both rings with a `force` on `chain[0]`. Each chain
+then resolves to a static alternating pattern, both odd length rings settle their
+output to 0, so the sampled bit `osc_a ^ osc_b` is a constant 0 and
+`raw_bit = 0 ^ ext_bit` is exactly `uio_in[0]`. That is bit for bit what the RTL
+regression drives through `SIM_ENTROPY = 1`, which is why the same test module
+runs against both. [`test/test_gl.py`](test/test_gl.py) asserts that state instead
+of assuming it: every one of the 12 chain nets, both settled ring outputs, the
+synchroniser output that feeds the sampler, and `uio_oe` through the tie cells.
 
-`make fpga` runs yosys `synth_ice40`, `nextpnr-ice40`, `icepack` and `icetime` for
-an **ICE40UP5K in sg48**, the device Tiny Tapeout's FPGA emulator uses:
+The result, on the netlist the `gds` job produced:
 
 ```
-ICESTORM_LC     678 / 5280   12%
-SB_IO            26 /   96   27%
+test_gl_tie_cells                 PASS
+test_gl_rings_are_broken          PASS
+test_reset                        PASS
+test_vga_timing                   PASS      170 s
+test_golden_frames                PASS      548 s   8 frames, 2 457 600 pixels
+test_pattern_switch_mid_frame     PASS       75 s
+test_von_neumann                  PASS
+test_lfsr_sequence                PASS
+test_lfsr_period                  PASS
+test_health_rct / apt / sticky    PASS
+test_trng_statistics              PASS       27 s
+```
+
+Nothing was reduced for the gate level run: the same 11 tests, the same 8 golden
+frames and the same 262 144 sample statistics run against the netlist, in about
+14 minutes. The only difference is that `test/tbutil.py` reads the four internal
+probes through flat escaped names (`\rnd_state[0] `) instead of through the RTL
+hierarchy, and the frames are not written to `test/output/`, because every image
+in `docs/img` comes from the RTL run and a second writer would quietly make that
+untrue.
+
+What this does **not** verify is the oscillator, which is held broken throughout.
+Nothing in an event simulator can verify it. That is covered structurally by
+`test/tb_ring.v`, and by the ring stage counts that `make synth` checks after
+mapping and `make harden` checks again in the routed netlist.
+
+One more thing worth writing down, because it depends on which PDK snapshot you
+have. The snapshot `tt-gds-action@ttihp26a` pins (IHP-Open-PDK `cb7daaa`) defines
+the `ihp_dff_r`, `ihp_mux2` and `ihp_mux4` UDPs inside `sg13g2_stdcell.v`. Newer
+ones split them into `sg13g2_udp.v`, and then `sg13g2_stdcell.v` will not
+elaborate without it: 154 `Unknown module type` errors. Naming a file that does
+not exist is a hard error and so is defining the UDPs twice, so `test/Makefile`
+picks it up with a `$(wildcard ...)` and works with either layout. The stock
+template handles neither.
+
+### The FPGA path
+
+`fpga.yaml` builds an ICE40UP5K bitstream through Tiny Tapeout's own
+`tt_fpga.py`. The template ships that workflow disabled, and the obvious build
+does not work:
+
+```
+ERROR: timing analysis failed due to presence of combinatorial loops,
+       incomplete specification of timing ports, etc.
+```
+
+That is `nextpnr-ice40` refusing the ring oscillators, and it is not negotiable:
+the tool will not place a design containing a combinational cycle. So the
+oscillators are left out of the FPGA build. `tt_fpga.py` synthesises with
+`-DSYNTH` and [`src/entropy_source.v`](src/entropy_source.v) takes that as the
+signal to source entropy from the `ENT_IN` pin instead. Nothing else changes, and
+the ASIC flow never defines `SYNTH`: LibreLane runs with `VERILOG_DEFINES` null,
+and if that ever stopped being true, `make synth` and `make harden` both count the
+12 ring stages and fail without them.
+
+Leaving them out is also the honest build for an FPGA. Routed LUTs cannot host a
+usable ring oscillator TRNG, so on a board the noise has to arrive from outside,
+and whatever is fed to that pin is not a TRNG.
+
+From the workflow run, on Tiny Tapeout's `tt_fpga_top` and their FabricFox pin
+assignment:
+
+```
+ICESTORM_LC     630 / 5280   11%
+SB_IO            26 /   39   66%
 SB_GB             6 /    8   75%
 BRAM, DSP, PLL, SPRAM        0%      (no framebuffer, so nothing to store)
-bitstream                104090 bytes
 
-register to register   33.27 MHz against 25.175 MHz, 1.32x  PASS
-clock to output pad     42.56 ns against a 39.72 ns pixel period, over budget
+register to register   41.49 MHz, PASS at the 12 MHz the action asks for,
+                       and 1.65x over the 25.175 MHz pixel clock
 ```
 
-The register to register frequency is what decides whether the design runs, and
-it passes. The clock to output pad path does not fit inside one pixel period, and
-that is reported rather than left out: there is no PCF and no output delay
-constraint in this run, because inventing pin numbers for a board nobody has would
-be worse than not constraining them. On a real board that path needs real pin
+`make fpga` runs the same flow locally through
+[`fpga/fpga_top.v`](fpga/fpga_top.v), a wrapper that exists because the raw tile
+has 43 ports and sg48 has 39 usable I/O. It uses no PCF, so its numbers differ:
+680 logic cells and 33.27 MHz register to register, still 1.32x over the pixel
+clock. Its clock to output pad path is 43.96 ns against a 39.72 ns pixel period,
+which is over budget and reported rather than left out. There is no output delay
+constraint in that run, because inventing pin numbers for a board nobody has would
+be worse than not constraining them; on a real board that path needs pin
 constraints and probably an output register stage. It does not affect the ASIC,
-where those ports go to the Tiny Tapeout harness rather than to pads, and where
-the hardened run closes with 17.56 ns of slack.
-
-This is built through [`fpga/fpga_top.v`](fpga/fpga_top.v), a wrapper that exists
-for two real reasons. The raw tile has 43 ports and sg48 has 39 usable I/O, and
-`synth_ice40` will not build a combinational loop, so the tile is instantiated
-with `SIM_ENTROPY = 1` and entropy comes from the `ENT_IN` pin. That is the right
-choice on an FPGA anyway: routed LUTs cannot host a usable ring oscillator TRNG,
-so entropy has to come from outside, and whatever you feed that pin is not a TRNG.
-
-No `fpga` badge is added, and that is deliberate. A badge points at the workflow,
-`fpga.yaml` is `branches: none` as in the template so it never runs on push, and a
-badge for a workflow that never runs would say nothing true. The evidence is the
-numbers above and [docs/fpga/](docs/fpga/).
+where those ports go to the Tiny Tapeout harness rather than to pads. Reports are
+in [docs/fpga/](docs/fpga/).
 
 ## Repository layout
 
@@ -611,17 +714,25 @@ test/
   capture.py                      animation frame capture, also model verified
   tb.v                            cocotb wrapper, selects SIM_ENTROPY=1
   tb_ring.v                       ring oscillator structural testbench
-  test_gl.py                      what is checkable on the hardened netlist
+  test_gl.py                      netlist specific checks, run before the suite
 scripts/
   synth_report.sh                 Yosys area report against the real IHP liberty
   parse_synth.py                  Yosys text to docs/synth/area.json
+  check_area.py                   re-derives the tile count from the measurements
+  harden.sh, parse_harden.py      LibreLane run, signoff extract, ring survival
+  run_sta.sh, parse_sta.py        OpenSTA across the three corners
+  run_gl.sh                       gate level regression on a hardened netlist
+  run_fpga.sh, parse_fpga.py      iCE40 flow and its report
+  run_formal.sh                   SymbiYosys proofs plus the mutation check
+  ring_freq.py                    ring frequency from the Liberty delay tables
+  render_gds.py                   KLayout layout renders
   frames.py                       read the raw frame dumps
   make_images.py                  regenerate every raster image in docs/img
 hardening/
   config.json                     LibreLane config for the local hardening run
   constraints.sdc                 real timing constraints, not the fallback
 fpga/
-  fpga_top.v                      iCE40 demo wrapper, SIM_ENTROPY=1
+  fpga_top.v                      iCE40 demo wrapper for a board
 formal/
   von_neumann_fv.v, *.sby         debiaser symmetry proof
   vga_sync_fv.v, *.sby            sync counter invariants, base plus step
@@ -652,25 +763,34 @@ Collected in one place so none of it has to be dug out of the prose:
 - The correct ring oscillator sample rate is a property of the fabricated
   silicon. `SAMP_FAST` and both cutoff selectors are runtime controls so it can
   be found on a bench.
-- The tile is **hardened and DRC clean, not fabricated**. `gds`, `precheck`,
-  `viewer`, `docs` and `test` all pass in CI, which means it places, routes,
-  passes DRC and LVS, and clears Tiny Tapeout's precheck. It has not been
-  submitted to a shuttle and no silicon exists.
-- The `gl_test` job was removed because a ring oscillator cannot be simulated
-  against zero delay functional cell models. The reasoning and the measurements
-  are above rather than buried.
+- The tile is **hardened and DRC clean, not fabricated**. Every job of `gds`,
+  `docs`, `test` and `fpga` passes in CI, which means it places, routes, passes
+  DRC and LVS, clears Tiny Tapeout's precheck, and its hardened netlist passes the
+  regression again. It has not been submitted to a shuttle and no silicon exists.
+- **Gate level simulation runs with both ring oscillators held broken.** A live
+  ring against zero delay cell models stops an event simulator's timewheel, so
+  `test/tb.v` forces both chains and `test/test_gl.py` asserts the resulting
+  state. Everything else in the netlist is verified; the oscillator is not.
 - The ring oscillator frequency table is a hand calculation from Liberty delay
   tables with no interconnect. Real rings will be slower. It is not a measurement.
-- The FPGA build is unconstrained: no PCF, no output delay constraint. The
+- **The FPGA bitstream has no ring oscillators in it.** `nextpnr-ice40` refuses a
+  design containing a combinational loop, so the FPGA build takes entropy from the
+  `ENT_IN` pin. Whatever is fed to that pin is not a TRNG.
+- The local FPGA run is unconstrained: no PCF, no output delay constraint. The
   register to register frequency passes at 1.32x, the clock to output pad path
-  does not fit a pixel period, and both are reported. It validates the ice40 flow,
-  not the `fpga` workflow and not any specific board.
+  does not fit a pixel period, and both are reported. The `fpga` workflow builds
+  Tiny Tapeout's own top and pin assignment instead, and is the one the badge
+  points at.
 - One `max_fanout` design rule violation remains, on the clock tree root buffer.
   It is documented rather than papered over, together with what was tried.
-- `make harden` fixes the die at the 1x2 tile footprint, which is the right
-  question to ask of this design but is not identical to Tiny Tapeout's own tile
-  geometry: their harness reserves part of the tile for its own routing and pin
-  frame, which this run does not model.
+- `make harden` fixes the die at Tiny Tapeout's own 1x1 tile area, but only the
+  area: their `gds` job starts from `tt_block_1x1_pgvdd.def`, which also carries
+  the harness pin frame and power grid obstructions. Their flow runs on every push
+  and passes, so the difference is not hypothetical, but the two are not the same
+  floorplan.
+- **The tile fits at 82.7% density, which is not much room.** Placement fails
+  outright at a 60% or an 80% target; 85 is what works. Any future change needs
+  the density rechecked rather than assumed.
 
 ## License
 

@@ -4,49 +4,52 @@
   "sdc": "hardening/constraints.sdc",
   "clock_period_ns": 39.722,
   "clock_mhz": 25.175,
-  "die_area_um2": 36072,
+  "die_area_um2": 31318.4,
   "die_um": [
-    167.0,
-    216.0
+    202.08,
+    154.98
   ],
-  "tile_area_um2": 18036.0,
-  "tiles_declared": "1x2",
-  "instance_area_total_um2": 33430.3,
-  "instance_area_fill_um2": 7489.84,
-  "instance_area_real_um2": 25940.5,
-  "instance_count_total": 2965,
-  "instance_count_fill": 1198,
-  "instance_count_real": 1767,
+  "tile_um": [
+    202.08,
+    154.98
+  ],
+  "tile_area_um2": 31318.4,
+  "tiles_from_die": "1x1",
+  "instance_area_total_um2": 28941.5,
+  "instance_area_fill_um2": 3053.64,
+  "instance_area_real_um2": 25887.9,
+  "instance_count_total": 2343,
+  "instance_count_fill": 572,
+  "instance_count_real": 1771,
   "flop_count": 142,
   "area_by_class_um2": {
     "buffer": 36.288,
     "inverter": 332.035,
-    "sequential_cell": 7076.16,
-    "multi_input_combinational_cell": 11403.5,
-    "timing_repair_buffer": 5846,
+    "sequential_cell": 7077.97,
+    "multi_input_combinational_cell": 11363.6,
+    "timing_repair_buffer": 5831.48,
     "clock_buffer": 1170.29,
     "clock_inverter": 76.2048,
-    "fill_cell": 7489.84
+    "fill_cell": 3053.64
   },
   "count_by_class": {
     "buffer": 5,
     "inverter": 56,
     "sequential_cell": 142,
     "multi_input_combinational_cell": 1161,
-    "timing_repair_buffer": 338,
+    "timing_repair_buffer": 342,
     "clock_buffer": 51,
     "clock_inverter": 14,
-    "fill_cell": 1198
+    "fill_cell": 572
   },
-  "density_real_over_die": 0.7191,
-  "density_real_over_1x1": 1.4383,
-  "density_real_over_1x2": 0.7191,
-  "setup_ws_ns": 17.558319739577197,
-  "hold_ws_ns": 0.11677559250106498,
+  "density_real_over_die": 0.8266,
+  "density_real_over_1x1": 0.8266,
+  "setup_ws_ns": 17.453662120710334,
+  "hold_ws_ns": 0.1535182024955816,
   "setup_tns_ns": 0,
   "hold_tns_ns": 0,
-  "wirelength_um": 38024,
-  "power_total_w": 0.0003440262807998806,
+  "wirelength_um": 69427,
+  "power_total_w": 0.0003507290093693882,
   "max_slew_violations": 0,
   "max_cap_violations": 0,
   "max_fanout_violations": 1,
@@ -66,16 +69,16 @@
   },
   "per_corner": {
     "nom_fast_1p32V_m40C": {
-      "setup_ws_ns": 18.762846030158766,
-      "hold_ws_ns": 0.11677559250106498
+      "setup_ws_ns": 18.730962200346635,
+      "hold_ws_ns": 0.1535182024955816
     },
     "nom_slow_1p08V_125C": {
-      "setup_ws_ns": 17.558319739577197,
-      "hold_ws_ns": 0.6219255286798926
+      "setup_ws_ns": 17.453662120710334,
+      "hold_ws_ns": 0.7188321252811224
     },
     "nom_typ_1p20V_25C": {
-      "setup_ws_ns": 18.32200931721393,
-      "hold_ws_ns": 0.30243713944812367
+      "setup_ws_ns": 18.267365026574854,
+      "hold_ws_ns": 0.3631051118111191
     }
   }
 }

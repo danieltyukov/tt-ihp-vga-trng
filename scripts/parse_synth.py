@@ -17,9 +17,18 @@ TILE_W_UM = 202.08
 TILE_H_UM = 154.98
 TILE_AREA = TILE_W_UM * TILE_H_UM
 
-# Librelane places at PL_TARGET_DENSITY_PCT, which src/config.json leaves at the
-# Tiny Tapeout default of 60. Anything above that will not place and route.
-TARGET_DENSITY = 0.60
+# LibreLane places at PL_TARGET_DENSITY_PCT, read from the submission config so
+# this forecast cannot disagree with what the flow is actually told to do. It is
+# only a forecast: the density that matters is post route, and on this design that
+# is 25 percentage points higher than synthesis suggests. See scripts/check_area.py.
+def _target_density():
+    cfg = pathlib.Path(__file__).resolve().parent.parent / "src" / "config.json"
+    # duplicate "//" comment keys are legal for LibreLane, keep the last of each
+    d = json.loads(cfg.read_text(), object_pairs_hook=lambda kv: {k: v for k, v in kv})
+    return float(d["PL_TARGET_DENSITY_PCT"]) / 100.0
+
+
+TARGET_DENSITY = _target_density()
 
 DOCS = pathlib.Path(__file__).resolve().parent.parent / "docs" / "synth"
 

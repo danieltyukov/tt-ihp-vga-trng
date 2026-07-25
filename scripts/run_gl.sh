@@ -91,5 +91,5 @@ if grep -q "<failure" results.xml; then
   echo "GATE LEVEL TEST FAILURES in test/results.xml" >&2
   exit 1
 fi
-grep -o 'name="[^"]*"' results.xml | sed 's/name="/  pass  /;s/"$//'
+grep -o '<testcase [^>]*' results.xml | sed -n 's/.*name="\([^"]*\)".*/  pass  \1/p'
 echo "gate level regression: $(grep -c '<testcase' results.xml) tests, all passed"

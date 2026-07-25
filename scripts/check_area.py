@@ -6,25 +6,25 @@ this runs, so the committed version is read back out of git.
 
 Compared with a tolerance rather than byte for byte on purpose. Yosys cell counts
 move a little between versions, and pinning CI to one version just to protect an
-exact match would turn this into a test of the runner image. What actually needs
-protecting is the number the tile decision rests on: 18040 um2 against a 10822 um2
-single tile budget is a 67% overshoot, so a 2% tolerance still catches any real
-change to the design while ignoring mapper noise.
+exact match would turn this into a test of the runner image. 2% is far tighter
+than anything that would change a conclusion here.
 
 Also re-derives the tile count and asserts it agrees with info.yaml, so the
 declared tile size can never drift away from the measurement. Two derivations run,
 and the post route one is the one that decides:
 
   post synthesis  mapped cell area against the tile area at LibreLane's placement
-                  density target. A forecast, and on this design a bad one: 18040
-                  um2 of cells against 18036 um2 of gross 1x1 tile is a dead heat,
-                  which is exactly where a synthesis-only estimate is worthless.
+                  density target. A forecast, and on this design an optimistic
+                  one: 18040 um2 is 57.6% of a 1x1 tile and the forecast says the
+                  design fits with room to spare.
 
   post route      real cell area from docs/hardening/summary.json against the die
-                  that was actually hardened. 25940 um2 of cells is 143.8% of a
-                  gross 1x1 tile, so 1x1 is ruled out arithmetically rather than
-                  by a density convention. This check runs whenever the hardening
-                  summary is committed, which it is.
+                  that was actually hardened. 25888 um2 is 82.7% of that same
+                  tile, because clock tree insertion and hold fixing add 44% that
+                  synthesis never sees. It still fits, but only with the placement
+                  density target raised, and only because someone ran it. This
+                  check runs whenever the hardening summary is committed, which it
+                  is.
 """
 
 import json

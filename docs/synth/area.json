@@ -133,9 +133,9 @@
     "tile_w_um": 202.08,
     "tile_h_um": 154.98,
     "tile_area_um2": 31318.3584,
-    "target_density": 0.6,
-    "usable_area_per_tile_um2": 18791.02,
-    "tiles_required": 0.96,
+    "target_density": 0.85,
+    "usable_area_per_tile_um2": 26620.6,
+    "tiles_required": 0.678,
     "density_1x1": 0.576,
     "density_1x2": 0.288
   }

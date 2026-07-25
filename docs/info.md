@@ -102,7 +102,7 @@ project measures entropy from silicon, and the LFSR conditioner is linear, so
 ### Area and the hardened result
 
 The tile is hardened with LibreLane 3.0.0.dev44 on ihp-sg13g2, DRC and LVS clean,
-into a 167 x 216 um die, which is the 1x2 footprint declared above.
+into a 202.08 x 154.98 um die, which is the 1x1 tile declared above.
 
 ![Layout detail, 12 x 12 um](img/layout_detail.png)
 
@@ -111,19 +111,21 @@ power rails, contacts, and metal2 routing. The full die view is in the repositor
 README, along with a link to an interactive 3D viewer.
 
 ```
-die area            36072.0 um2   167 x 216
-real cell area      25940.5 um2   1767 cells
-setup worst slack    17.5583 ns   at 39.722 ns, all three corners
-hold worst slack      0.1168 ns
-power                 0.3440 mW
+die area            31318.4 um2   202.08 x 154.98
+real cell area      25887.9 um2   1771 cells, 82.7% density
+setup worst slack    17.4537 ns   at 39.722 ns, all three corners
+hold worst slack      0.1535 ns
+power                 0.3507 mW
 
 route DRC 0, magic DRC 0, klayout DRC 0, LVS 0, antenna 0, power grid 0
 ```
 
 Post synthesis the design is 1288 cells and 18040 um2, and post route the real
-cells are 25940 um2. That difference is mostly hold buffers, and it is what
-settles the tile count: 25940 um2 is 143.8% of a single 18036 um2 tile, so 1x1 is
-not a tight fit but arithmetically impossible, while 1x2 comes to 71.9%.
+cells are 25888 um2. The difference is mostly hold buffers, and it is what
+settles the tile count: 18040 um2 is a comfortable 57.6% of a tile, but 25888 um2
+is 82.7% of one, which is past the 60% placement density LibreLane targets by
+default. It still fits, with the density target raised to 85 in src/config.json,
+and the repository README has the three measurements that value came from.
 
 This is a hardened layout, not fabricated silicon. Submitting to a shuttle is a
 separate step.
