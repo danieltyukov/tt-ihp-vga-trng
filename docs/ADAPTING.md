@@ -47,11 +47,10 @@ That covers `info.yaml` (`top_module` and `source_files`), `test/Makefile`
 `scripts/sta.tcl`, `scripts/synth_report.sh`, `scripts/run_gl.sh`,
 `scripts/make_images.py`, `fpga/fpga_top.v` and the prose.
 
-The reports under `docs/synth/`, `docs/sta/` and `docs/hardening/` still name the
-old module. Do not sed those: re-run `make synth`, `make sta` and `make harden`
-so the committed reports are output from tools that saw the new name. Same for
-`docs/img/block_diagram.svg`, which is hand written and names the module three
-times.
+The three excluded directories are tool output, and the reports in them still name
+the old module. Do not sed those: re-run `make synth`, `make sta` and
+`make harden` so the committed reports come from tools that saw the new name.
+`docs/img/block_diagram.svg` is hand written text and the sed does cover it.
 
 ---
 
@@ -230,9 +229,9 @@ change the defaults in `src/vga_sync.v`. What the parameters do **not** cover:
   bits, and so do `H_TOTAL`/`V_TOTAL` in `test/model.py`.
 - **The pixel clock is the real constraint.** Post route this tile has +17.4537 ns
   of setup slack at 39.722 ns on the slow corner, so Fmax there is
-  `1/(39.722 - 17.4537)` = **44.86 MHz**.
+  `1000 / (39.722 - 17.4537)` = **44.91 MHz**.
 
-| mode | pixel clock | against the measured 44.86 MHz |
+| mode | pixel clock | against the measured 44.91 MHz |
 | --- | --- | --- |
 | 640x480 at 59.94 Hz | 25.175 MHz | 1.78x margin, what is committed |
 | 800x600 at 60 Hz | 40.0 MHz | 1.12x, plausible but re-measure before claiming it |
@@ -452,12 +451,15 @@ The authority is the DEF file their `gds` action hands the floorplanner, in
 `TinyTapeout/tt-support-tools` on branch `main`:
 
 ```sh
+# every tile size that exists for this shuttle
+gh api repos/TinyTapeout/tt-support-tools/contents/tech/ihp-sg13g2/def --jq '.[].name'
+
+# and the die of one of them
 gh api repos/TinyTapeout/tt-support-tools/contents/tech/ihp-sg13g2/def/tt_block_1x1_pgvdd.def \
   --jq '.content' | base64 -d | grep DIEAREA
 ```
 
-Those are the only tile sizes that exist. For `ihp-sg13g2` there are twelve, and
-every `DIEAREA` below was read out of its DEF:
+There are twelve, and every `DIEAREA` below was read out of its own DEF:
 
 | tiles | die, um | area, um2 |
 | --- | --- | --- |

@@ -413,7 +413,7 @@ does not close at the signoff corner, so the `clock_hz` claim cannot silently ro
 Those are post synthesis numbers. The post route ones are lower, and the honest
 comparison is the pair: the same slow corner gives +33.81 ns of setup slack after
 synthesis and +17.45 ns after routing, so Fmax at that corner falls from 169.13
-MHz to **44.86 MHz**. Post synthesis STA estimates interconnect from the liberty
+MHz to **44.91 MHz**. Post synthesis STA estimates interconnect from the liberty
 wireload model, while the hardened number carries extracted parasitics, the real
 clock tree and 240 hold buffers. Both are reported rather than just the flattering
 one. Either way 25.175 MHz closes, with 1.78x of margin on the routed design.
