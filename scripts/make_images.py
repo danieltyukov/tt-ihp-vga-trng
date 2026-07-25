@@ -382,15 +382,19 @@ def plot_area(area, harden=None):
     labels = [b[0] for b in bars]
     vals = [b[1] for b in bars]
     ax2.bar(labels, vals, color=[b[2] for b in bars], width=0.5)
+    # Value labels sit inside the bars. Above them they collide with the density
+    # reference line, which on this design is only 700 um2 clear of the post route
+    # bar.
     for x, v in enumerate(vals):
         ax2.annotate(
             f"{v:.0f}",
             xy=(x, v),
-            xytext=(0, 5),
+            xytext=(0, -14),
             textcoords="offset points",
             ha="center",
+            va="top",
             fontsize=9.5,
-            color=INK,
+            color="white",
         )
 
     # the tile itself and the placement density target as reference lines, named
@@ -417,7 +421,7 @@ def plot_area(area, harden=None):
             f"post route cells are\n"
             f"{harden['density_real_over_1x1'] * 100:.1f}% of a 1x1 tile",
             xy=(0.5, tile_area),
-            xytext=(0, -46),
+            xytext=(0, 8),
             textcoords="offset points",
             ha="center",
             fontsize=9,
