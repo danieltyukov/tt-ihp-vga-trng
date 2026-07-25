@@ -449,7 +449,18 @@ def render_layouts():
     import subprocess
 
     top = "tt_um_danieltyukov_vga_trng"
-    candidates = sorted(ROOT.glob(f"runs/*/final/gds/{top}.gds"))
+    # The run named in docs/hardening/summary.json, not whichever run sorts last:
+    # a repository that has also hardened a comparison die would otherwise render
+    # that one and quietly show a layout the numbers do not describe.
+    candidates = []
+    hs = ROOT / "docs" / "hardening" / "summary.json"
+    if hs.exists():
+        tag = json.loads(hs.read_text()).get("run")
+        if tag:
+            candidates = [p for p in [ROOT / "runs" / tag / "final" / "gds" / f"{top}.gds"]
+                          if p.exists()]
+    if not candidates:
+        candidates = sorted(ROOT.glob(f"runs/*/final/gds/{top}.gds"))
     existing = [p for p in (IMG / "layout.png", IMG / "layout_detail.png") if p.exists()]
     if not candidates:
         if existing:
@@ -463,7 +474,7 @@ def render_layouts():
 
     gds = candidates[-1]
     jobs = [
-        (IMG / "layout.png", ["-rd", "w=880", "-rd", "h=1140"]),
+        (IMG / "layout.png", ["-rd", "w=1240", "-rd", "h=980"]),
         (IMG / "layout_detail.png",
          ["-rd", "w=900", "-rd", "h=900", "-rd", "box=76,104,88,116"]),
     ]

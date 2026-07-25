@@ -1,5 +1,6 @@
 {
   "tool": "LibreLane 3.0.0.dev44",
+  "run": "tile1x1d",
   "pdk": "ihp-sg13g2",
   "sdc": "hardening/constraints.sdc",
   "clock_period_ns": 39.722,

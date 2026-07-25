@@ -124,6 +124,10 @@ def main():
 
     summary = {
         "tool": "LibreLane 3.0.0.dev44",
+        # Which run directory these numbers came from, so scripts/make_images.py
+        # renders the same die the summary describes rather than whichever run
+        # happens to sort last.
+        "run": run.name,
         "pdk": "ihp-sg13g2",
         "sdc": "hardening/constraints.sdc",
         "clock_period_ns": 39.722,
