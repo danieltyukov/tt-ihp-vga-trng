@@ -1,0 +1,78 @@
+# Tiny Tapeout project information
+project:
+  title:        "VGA pattern engine with TRNG pattern select"
+  author:       "Daniel Tyukov"
+  discord:      ""
+  description:  "Eight 640x480 VGA pattern generators selected by pin or by an on-chip TRNG with von Neumann debiasing, LFSR conditioning and SP 800-90B health tests"
+  language:     "Verilog"
+
+  # 640x480 at 59.94 Hz needs a 25.175 MHz pixel clock: 800 x 525 x 59.94.
+  clock_hz:     25175000
+
+  # How many tiles your design occupies? A single tile is about 167x108 uM.
+  #
+  # 1x2, not 1x1. Yosys mapped to the real IHP sg13g2 library reports
+  # 17894.86 um2 of standard cell area (1268 cells, 142 flip-flops). One tile is
+  # 167 x 108 = 18036 um2, so a 1x1 tile would need 99.2% placement density and
+  # will not route; Librelane targets 60%. Two tiles put it at 49.6%.
+  # See docs/design.md and docs/synth/ for the full breakdown.
+  tiles: "1x2"
+
+  top_module:  "tt_um_danieltyukov_vga_trng"
+
+  # Source files must be in ./src and each one listed separately.
+  # Keep this list in sync with PROJECT_SOURCES in test/Makefile.
+  source_files:
+    - "tt_um_danieltyukov_vga_trng.v"
+    - "vga_sync.v"
+    - "pattern_mux.v"
+    - "pat_xor.v"
+    - "pat_bars.v"
+    - "pat_sierp.v"
+    - "pat_ripple.v"
+    - "sine_q.v"
+    - "pat_plasma.v"
+    - "pat_ball.v"
+    - "pat_stars.v"
+    - "pat_rule30.v"
+    - "trng.v"
+    - "ring_osc.v"
+    - "entropy_source.v"
+    - "von_neumann.v"
+    - "lfsr_whitener.v"
+    - "health_monitor.v"
+
+# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
+pinout:
+  # Inputs
+  ui[0]: "SEL0 - manual pattern select bit 0"
+  ui[1]: "SEL1 - manual pattern select bit 1"
+  ui[2]: "SEL2 - manual pattern select bit 2"
+  ui[3]: "RAND_EN - 1 selects the pattern from the TRNG instead of SEL"
+  ui[4]: "HEALTH_CLR - clears both sticky health test flags while high"
+  ui[5]: "FAST_SW - random reselect every 8 frames instead of every 64"
+  ui[6]: "FREEZE - holds the frame counter so animations stop"
+  ui[7]: "SAMP_FAST - sample entropy every clock instead of every 8 clocks"
+
+  # Outputs
+  uo[0]: "R1 - red MSB"
+  uo[1]: "G1 - green MSB"
+  uo[2]: "B1 - blue MSB"
+  uo[3]: "VSYNC - negative polarity"
+  uo[4]: "R0 - red LSB"
+  uo[5]: "G0 - green LSB"
+  uo[6]: "B0 - blue LSB"
+  uo[7]: "HSYNC - negative polarity"
+
+  # Bidirectional pins
+  uio[0]: "ENT_IN - external entropy bit, XORed into the noise source (input)"
+  uio[1]: "RCT_CUT0 - repetition count cutoff select bit 0 (input)"
+  uio[2]: "RCT_CUT1 - repetition count cutoff select bit 1 (input)"
+  uio[3]: "APT_CUT0 - adaptive proportion cutoff select bit 0 (input)"
+  uio[4]: "APT_CUT1 - adaptive proportion cutoff select bit 1 (input)"
+  uio[5]: "RCT_FAIL - repetition count test sticky failure flag (output)"
+  uio[6]: "APT_FAIL - adaptive proportion test sticky failure flag (output)"
+  uio[7]: "RND_OUT - conditioned random bit stream, gated on health (output)"
+
+# Do not change!
+yaml_version: 6

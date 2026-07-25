@@ -1,0 +1,31 @@
+.venv/
+__pycache__/
+*.pyc
+
+# cocotb / iverilog
+test/sim_build/
+sim_build/
+results.xml
+test/results.xml
+*.vcd
+*.fst
+*.fst.hier
+
+# generated frame dumps and intermediate simulation output
+test/output/
+docs/img/frames/
+
+# cached PDK liberty for the yosys area report, fetched by scripts/synth_report.sh
+build/
+docs/synth/check.raw
+
+# Tiny Tapeout hardening artefacts
+runs/
+tt_submission/
+tt/
+src/user_config.json
+src/config_merged.json
+test/gate_level_netlist.v
+
+.DS_Store
+.idea
