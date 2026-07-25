@@ -86,13 +86,12 @@ jobs:
       - name: Yosys area report
         run: ./scripts/synth_report.sh
 
-      - name: Fail if the committed area report is stale
-        run: |
-          git diff --stat -- docs/synth/area.json
-          git diff --quiet -- docs/synth/area.json || {
-            echo "docs/synth/area.json differs from a fresh run; re-run make synth and commit"
-            exit 1
-          }
+      # Compared with a tolerance rather than byte for byte. Cell counts depend on
+      # the Yosys version, and pinning CI to one version to protect an exact
+      # match would make this check about the runner image instead of about the
+      # design. 2% is far tighter than the margin the tile decision rests on.
+      - name: Check the committed area report against a fresh run
+        run: python3 scripts/check_area.py
 
       - name: Upload synthesis report
         if: success() || failure()

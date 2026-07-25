@@ -260,8 +260,11 @@ smaller optimisations that were considered and why none of them changes the
 answer.
 
 `make synth` also fails the build on any blackbox, any inferred latch, or any ring
-oscillator stage lost to the optimiser. Reports are committed in
-[docs/synth/](docs/synth/).
+oscillator stage lost to the optimiser. `scripts/check_area.py`, which the CI synth
+job runs, compares a fresh report against the committed one within 2% and
+independently re-derives the required tile count from the measured area, so the
+`tiles` field in `info.yaml` cannot drift away from the measurement. Reports are
+committed in [docs/synth/](docs/synth/).
 
 ## Simulating and testing locally
 

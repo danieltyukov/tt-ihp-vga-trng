@@ -539,6 +539,12 @@ Plus, outside cocotb:
 - `make lint`, Verilator `-Wall` with zero warnings.
 - `make synth`, which fails the build on any blackbox, any inferred latch, or any
   ring oscillator stage lost to the optimiser.
+- `scripts/check_area.py`, run by the CI synth job, which compares a fresh area
+  report against the committed one within 2% and re-derives the required tile
+  count from the measured area, so `tiles` in `info.yaml` cannot drift away from
+  what was measured. Compared with a tolerance rather than exactly because Yosys
+  cell counts move slightly between versions, and pinning CI to one version to
+  protect a byte for byte match would make the check about the runner image.
 
 ### How the timing test avoids reading internal signals
 
