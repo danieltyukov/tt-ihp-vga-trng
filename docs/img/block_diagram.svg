@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 834" width="1180" height="834"
+     font-family="DejaVu Sans, Verdana, sans-serif" role="img"
+     aria-label="Block diagram of the tt_um_danieltyukov_vga_trng tile">
+  <title>tt_um_danieltyukov_vga_trng block diagram</title>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a3a3a"/>
+    </marker>
+    <style>
+      .blk   { fill:#f4f6f9; stroke:#39434f; stroke-width:2; }
+      .pat   { fill:#e8f1fb; stroke:#2f5d8c; stroke-width:1.6; }
+      .trng  { fill:#fdf0e6; stroke:#9a5a1c; stroke-width:2; }
+      .hlth  { fill:#fdeaea; stroke:#963232; stroke-width:2; }
+      .pin   { fill:#eef4ea; stroke:#3f6b32; stroke-width:2; }
+      .grp   { fill:none; stroke:#9aa4b0; stroke-width:1.4; stroke-dasharray:7 5; }
+      .w     { stroke:#3a3a3a; stroke-width:1.8; fill:none; marker-end:url(#arrow); }
+      .wthin { stroke:#3a3a3a; stroke-width:1.2; fill:none; marker-end:url(#arrow); }
+      text        { fill:#1c2128; }
+      .t     { font-size:14px; }
+      .tb    { font-size:15px; font-weight:bold; }
+      .ts    { font-size:12px; }
+      .tt    { font-size:12px; font-family:DejaVu Sans Mono, monospace; }
+      .ttb   { font-size:13px; font-family:DejaVu Sans Mono, monospace; font-weight:bold; }
+      .hdr   { font-size:20px; font-weight:bold; }
+      .note  { font-size:11.5px; fill:#4a5560; }
+      .glbl  { font-size:12px; font-weight:bold; fill:#5c6670; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="834" fill="#ffffff"/>
+  <text class="hdr" x="24" y="34">tt_um_danieltyukov_vga_trng &#8212; 640x480 VGA pattern engine with TRNG select</text>
+  <text class="note" x="24" y="55">IHP sg13g2, 1x2 tile, 25.175 MHz pixel clock. 1288 cells / 142 flip-flops / 18040 um2 mapped area.</text>
+
+  <!-- ================= input pins ================= -->
+  <rect class="pin" x="24" y="86" width="176" height="230" rx="5"/>
+  <text class="tb" x="34" y="106">ui_in[7:0]</text>
+  <text class="tt" x="34" y="128">[2:0] SEL</text>
+  <text class="tt" x="34" y="146">[3]   RAND_EN</text>
+  <text class="tt" x="34" y="164">[4]   HEALTH_CLR</text>
+  <text class="tt" x="34" y="182">[5]   FAST_SW</text>
+  <text class="tt" x="34" y="200">[6]   FREEZE</text>
+  <text class="tt" x="34" y="218">[7]   SAMP_FAST</text>
+  <text class="tb" x="34" y="248">uio_in[4:0]</text>
+  <text class="tt" x="34" y="268">[0]   ENT_IN</text>
+  <text class="tt" x="34" y="286">[2:1] RCT_CUT</text>
+  <text class="tt" x="34" y="304">[4:3] APT_CUT</text>
+
+  <rect class="pin" x="24" y="336" width="176" height="58" rx="5"/>
+  <text class="tb" x="34" y="358">clk 25.175 MHz</text>
+  <text class="tb" x="34" y="380">rst_n</text>
+
+  <!-- ================= sync generator ================= -->
+  <rect class="blk" x="256" y="96" width="212" height="126" rx="5"/>
+  <text class="tb" x="266" y="118">vga_sync</text>
+  <text class="ts" x="266" y="138">800 x 525 counters</text>
+  <text class="ts" x="266" y="156">H 640/16/96/48</text>
+  <text class="ts" x="266" y="174">V 480/10/2/33</text>
+  <text class="ts" x="266" y="192">28 flops, 2395 um2</text>
+  <text class="note" x="266" y="212">frame_cnt held by FREEZE</text>
+
+  <path class="w" d="M 200 150 L 254 150"/>
+  <path class="w" d="M 200 358 L 228 358 L 228 210 L 254 210"/>
+
+  <!-- sync bus out -->
+  <path class="w" d="M 468 130 L 520 130"/>
+  <text class="tt" x="474" y="122">hsync_n, vsync_n, active</text>
+  <path class="w" d="M 362 222 L 362 258"/>
+  <text class="tt" x="372" y="246">pix_x[9:0], pix_y[9:0], frame_cnt[7:0]</text>
+  <text class="tt" x="372" y="262">line_end, frame_end, frame_upd</text>
+
+  <!-- ================= pattern bank ================= -->
+  <rect class="grp" x="232" y="284" width="456" height="330" rx="7"/>
+  <text class="glbl" x="244" y="304">pattern_mux &#8212; 861 cells, 62 flops, 10951 um2</text>
+
+  <rect class="pat" x="246" y="316" width="200" height="42" rx="4"/>
+  <text class="t" x="256" y="336">0 XOR munching field</text>
+  <text class="note" x="256" y="352">combinational, 434 um2</text>
+
+  <rect class="pat" x="246" y="366" width="200" height="42" rx="4"/>
+  <text class="t" x="256" y="386">1 SMPTE bars + ramp</text>
+  <text class="note" x="256" y="402">combinational, 403 um2</text>
+
+  <rect class="pat" x="246" y="416" width="200" height="42" rx="4"/>
+  <text class="t" x="256" y="436">2 Sierpinski fractal</text>
+  <text class="note" x="256" y="452">combinational, 152 um2</text>
+
+  <rect class="pat" x="246" y="466" width="200" height="42" rx="4"/>
+  <text class="t" x="256" y="486">3 Manhattan ripple</text>
+  <text class="note" x="256" y="502">combinational, 953 um2</text>
+
+  <rect class="pat" x="458" y="316" width="216" height="42" rx="4"/>
+  <text class="t" x="468" y="336">4 Plasma (3 x sine_q)</text>
+  <text class="note" x="468" y="352">combinational, 1308 um2</text>
+
+  <rect class="pat" x="458" y="366" width="216" height="42" rx="4"/>
+  <text class="t" x="468" y="386">5 Bouncing box</text>
+  <text class="note" x="468" y="402">24 flops, 3346 um2</text>
+
+  <rect class="pat" x="458" y="416" width="216" height="42" rx="4"/>
+  <text class="t" x="468" y="436">6 Starfield, lfsr[15:0]</text>
+  <text class="note" x="468" y="452">combinational, 131 um2</text>
+
+  <rect class="pat" x="458" y="466" width="216" height="42" rx="4"/>
+  <text class="t" x="468" y="486">7 Rule 30 automaton</text>
+  <text class="note" x="468" y="502">40 flops, 4209 um2</text>
+
+  <rect class="blk" x="300" y="536" width="320" height="60" rx="5"/>
+  <text class="tb" x="310" y="558">8:1 colour mux</text>
+  <text class="ts" x="310" y="578">all eight run concurrently, one is selected</text>
+
+  <path class="wthin" d="M 346 458 L 346 534"/>
+  <path class="wthin" d="M 566 508 L 566 534"/>
+
+  <!-- ================= blanking + packing ================= -->
+  <rect class="blk" x="520" y="96" width="230" height="126" rx="5"/>
+  <text class="tb" x="530" y="118">blank + TinyVGA pack</text>
+  <text class="ts" x="530" y="138">rgb forced black outside</text>
+  <text class="ts" x="530" y="156">the 640x480 window</text>
+  <text class="tt" x="530" y="180">uo_out = {hsync, B0, G0, R0,</text>
+  <text class="tt" x="530" y="196">          vsync, B1, G1, R1}</text>
+
+  <path class="w" d="M 620 566 L 700 566 L 700 230"/>
+  <text class="tt" x="628" y="558">rgb[5:0]</text>
+
+  <rect class="pin" x="790" y="96" width="176" height="126" rx="5"/>
+  <text class="tb" x="800" y="118">uo_out[7:0]</text>
+  <text class="tt" x="800" y="140">[0] R1  [4] R0</text>
+  <text class="tt" x="800" y="158">[1] G1  [5] G0</text>
+  <text class="tt" x="800" y="176">[2] B1  [6] B0</text>
+  <text class="tt" x="800" y="194">[3] VSYNC (neg)</text>
+  <text class="tt" x="800" y="212">[7] HSYNC (neg)</text>
+  <path class="w" d="M 750 150 L 788 150"/>
+  <text class="note" x="790" y="240">TinyVGA PMOD, 64 colours</text>
+
+  <!-- ================= entropy pipeline ================= -->
+  <rect class="grp" x="720" y="284" width="436" height="330" rx="7"/>
+  <text class="glbl" x="732" y="304">trng &#8212; 246 cells, 49 flops, 4191 um2</text>
+
+  <rect class="trng" x="734" y="316" width="196" height="106" rx="4"/>
+  <text class="tb" x="744" y="336">entropy_source</text>
+  <text class="ts" x="744" y="356">SIM_ENTROPY=0: 5 and 7</text>
+  <text class="ts" x="744" y="373">stage ring_osc, XOR,</text>
+  <text class="ts" x="744" y="390">2 stage synchroniser</text>
+  <text class="note" x="744" y="410">SIM_ENTROPY=1: ENT_IN pin</text>
+
+  <rect class="trng" x="734" y="440" width="196" height="76" rx="4"/>
+  <text class="tb" x="744" y="460">von_neumann</text>
+  <text class="ts" x="744" y="480">01 emits 0, 10 emits 1,</text>
+  <text class="ts" x="744" y="497">equal pairs discarded</text>
+  <text class="note" x="744" y="512">yield p(1-p), 4 flops</text>
+
+  <rect class="trng" x="734" y="534" width="196" height="70" rx="4"/>
+  <text class="tb" x="744" y="554">lfsr_whitener</text>
+  <text class="tt" x="744" y="572">x16+x15+x13+x4+1</text>
+  <text class="note" x="744" y="590">period 65536, 16 flops</text>
+
+  <rect class="hlth" x="960" y="392" width="182" height="124" rx="4"/>
+  <text class="tb" x="970" y="412">health_monitor</text>
+  <text class="ts" x="970" y="432">SP 800-90B 4.4, run on</text>
+  <text class="ts" x="970" y="449">the RAW samples</text>
+  <text class="ts" x="970" y="468">RCT cutoff 4/8/16/32</text>
+  <text class="ts" x="970" y="485">APT 40/48/56/62 of 64</text>
+  <text class="note" x="970" y="505">sticky flags, 24 flops</text>
+
+  <path class="w" d="M 832 422 L 832 438"/>
+  <text class="tt" x="840" y="434">raw_bit</text>
+  <path class="w" d="M 832 516 L 832 532"/>
+  <text class="tt" x="840" y="528">vn_bit</text>
+  <path class="w" d="M 930 380 L 1002 380 L 1002 390"/>
+  <text class="tt" x="936" y="374">raw tap</text>
+
+  <rect class="blk" x="960" y="536" width="182" height="68" rx="4"/>
+  <text class="tb" x="970" y="556">output gate</text>
+  <text class="ts" x="970" y="576">RND_OUT held low while</text>
+  <text class="ts" x="970" y="593">a failure is latched</text>
+  <path class="w" d="M 930 570 L 958 570"/>
+  <path class="w" d="M 1051 516 L 1051 534"/>
+
+  <!-- pattern select logic -->
+  <rect class="blk" x="290" y="640" width="400" height="88" rx="5"/>
+  <text class="tb" x="300" y="662">pattern select</text>
+  <text class="tt" x="300" y="682">sel = RAND_EN ? sel_rand : SEL</text>
+  <text class="ts" x="300" y="700">sel_rand loads lfsr_state[2:0] every 8 or 64 frames</text>
+  <text class="ts" x="300" y="718">reload inhibited while a health failure is latched</text>
+
+  <path class="w" d="M 832 604 L 832 664 L 692 664"/>
+  <text class="tt" x="748" y="656">lfsr[2:0]</text>
+  <path class="w" d="M 1142 566 L 1164 566 L 1164 628 L 736 628 L 736 704 L 688 704"/>
+  <text class="tt" x="960" y="622">health_fail</text>
+  <path class="w" d="M 450 640 L 450 598"/>
+  <text class="tt" x="456" y="622">sel[2:0]</text>
+
+  <!-- starfield entropy feed -->
+  <path class="wthin" d="M 734 596 L 700 596 L 700 437 L 676 437"/>
+
+  <!-- ================= output pins ================= -->
+  <rect class="pin" x="960" y="640" width="196" height="126" rx="5"/>
+  <text class="tb" x="970" y="662">uio_out / uio_oe</text>
+  <text class="tt" x="970" y="684">[5] RCT_FAIL   (out)</text>
+  <text class="tt" x="970" y="702">[6] APT_FAIL   (out)</text>
+  <text class="tt" x="970" y="720">[7] RND_OUT    (out)</text>
+  <text class="tt" x="970" y="740">[4:0] inputs</text>
+  <text class="tt" x="970" y="760">uio_oe = 8'b1110_0000</text>
+  <path class="w" d="M 1051 604 L 1051 638"/>
+
+  <!-- inputs into trng -->
+  <path class="wthin" d="M 200 286 L 212 286 L 212 792 L 710 792 L 710 340 L 732 340"/>
+  <text class="tt" x="264" y="786">ENT_IN, cutoff selects, SAMP_FAST, HEALTH_CLR</text>
+
+  <text class="note" x="24" y="818">No framebuffer: 640x480 at 6 bpp is 230 kB and the whole tile holds 142 flip-flops. Six of eight patterns are pure functions of (pix_x, pix_y, frame_cnt).</text>
+</svg>

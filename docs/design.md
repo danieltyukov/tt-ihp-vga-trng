@@ -57,10 +57,10 @@ pat_ball     3346 um2   22 flops
              7555 um2
 ```
 
-Deleting both leaves 10485 um2, which is 58.1% density on a 1x1 tile. That only
-just clears the 60% target, and the price is both of the animated patterns,
-including the collision behaviour, and the only genuinely iterated pattern in the
-design. Sixteen microns of margin is not worth that.
+Deleting both leaves 10485 um2, which is 58.1% density on a 1x1 tile. That clears
+the 60% target by 337 um2, roughly seven flip-flops' worth of slack, and the price
+is both of the animated patterns, the collision behaviour, and the only genuinely
+iterated pattern in the design. Not a trade worth making.
 
 Smaller savings were considered and rejected because none of them changes the
 conclusion:
@@ -108,16 +108,18 @@ Leaf modules sum to 17688 um2 against a flattened total of 18040; the 352 um2
 difference is the top level glue, the blanking gate, the TinyVGA packing and the
 pattern select register, plus what cross-module optimisation moves around.
 
-Flip-flops dominate. 142 `sg13g2_dfrbpq_1` at 26.1 um2 each is 3706 um2, 21% of
-the design, and every one of them was argued for individually.
+Flip-flops dominate. `sg13g2_dfrbpq_1` is 48.99 um2 in this library, so 142 of
+them is 6956 um2: **38.6% of the whole design is flip-flops**, before any of the
+logic that drives them. That is the single fact that shaped every decision here,
+and it is why six of the eight patterns hold no state at all.
 
 ---
 
 ## 2. Why there is no framebuffer
 
-A 640x480 frame at 6 bits per pixel is 1 843 200 bits. As flip-flops in this
-library that is 48 million um2, about 2670 tiles. Even one scanline of 640
-pixels at 6 bits is 3840 bits, 100 000 um2, five and a half tiles.
+A 640x480 frame at 6 bits per pixel is 1 843 200 bits. As `sg13g2_dfrbpq_1` flops
+at 48.99 um2 each that is 90.3 million um2, about 5006 tiles. Even one scanline of
+640 pixels at 6 bits is 3840 bits, 188 000 um2, ten and a half tiles.
 
 So the colour of a pixel has to be a function of where the beam is right now.
 `pattern_mux` receives `(pix_x, pix_y, frame_cnt)` and six of the eight patterns

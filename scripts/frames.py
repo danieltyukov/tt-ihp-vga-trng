@@ -45,15 +45,29 @@ def meta(name, directory=None):
 
 
 def to_image(name, directory=None, scale=1):
-    """Load a captured frame as a PIL image."""
+    """Load a captured frame as a PIL image, optionally downscaled by max pooling.
+
+    Max pooling rather than the obvious choices, because both of them lose real
+    content from these particular patterns:
+
+      - Box averaging dims a single pixel star to a quarter of its brightness,
+        which makes the starfield look almost empty.
+      - Nearest neighbour drops the Sierpinski gasket completely. The gasket
+        lives on specific pixel parities, and at scale 2 nearest neighbour
+        samples exactly the parity that is always off.
+
+    Taking the brightest pixel of each block keeps one pixel wide features
+    visible at full brightness, which is what these images are for.
+    """
+    import numpy as np
     from PIL import Image
 
     w, h, px = load(name, directory)
-    img = Image.new("RGB", (w, h))
-    img.putdata(px)
+    arr = np.array(px, dtype=np.uint8).reshape(h, w, 3)
     if scale != 1:
-        img = img.resize((w // scale, h // scale), Image.BOX)
-    return img
+        assert w % scale == 0 and h % scale == 0, f"{w}x{h} is not divisible by {scale}"
+        arr = arr.reshape(h // scale, scale, w // scale, scale, 3).max(axis=(1, 3))
+    return Image.fromarray(arr)
 
 
 def available(directory=None):

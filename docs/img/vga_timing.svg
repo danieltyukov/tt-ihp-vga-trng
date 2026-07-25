@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" width="1120" height="700"
+     font-family="DejaVu Sans, Verdana, sans-serif" role="img"
+     aria-label="640x480 at 59.94 Hz VGA timing diagram with porch regions labelled">
+  <title>640x480 @ 59.94 Hz VGA timing</title>
+
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3a3a3a"/>
+    </marker>
+    <style>
+      .act  { fill:#cfe3f7; stroke:#2f5d8c; stroke-width:1.4; }
+      .fp   { fill:#f2f2f2; stroke:#8a8a8a; stroke-width:1.2; }
+      .sy   { fill:#f8d9d9; stroke:#963232; stroke-width:1.4; }
+      .bp   { fill:#f2f2f2; stroke:#8a8a8a; stroke-width:1.2; }
+      .sig  { stroke:#1c2128; stroke-width:2.4; fill:none; }
+      .dim  { stroke:#b3bcc6; stroke-width:1; stroke-dasharray:4 4; }
+      .msr  { stroke:#3a3a3a; stroke-width:1.2; marker-start:url(#a2); marker-end:url(#a2); }
+      text      { fill:#1c2128; }
+      .t    { font-size:13px; }
+      .tb   { font-size:15px; font-weight:bold; }
+      .ts   { font-size:11.5px; }
+      .tt   { font-size:12px; font-family:DejaVu Sans Mono, monospace; }
+      .hdr  { font-size:20px; font-weight:bold; }
+      .note { font-size:11.5px; fill:#4a5560; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1120" height="700" fill="#ffffff"/>
+  <text class="hdr" x="24" y="34">640x480 @ 59.94 Hz &#8212; measured from the tile pins by test_vga_timing</text>
+  <text class="note" x="24" y="55">Pixel clock 25 175 000 Hz. 800 x 525 = 420 000 clocks per frame. 25175000 / 420000 = 59.9405 Hz. Both syncs negative polarity.</text>
+
+  <!-- ============ horizontal ============ -->
+  <text class="tb" x="24" y="98">One scanline &#8212; 800 pixel clocks (31.78 us)</text>
+
+  <!-- region blocks: 640 / 16 / 96 / 48 mapped to 880 px of width from x=90 -->
+  <!-- scale: 1.1 px per clock -->
+  <rect class="act" x="90"  y="112" width="704" height="46"/>
+  <rect class="fp"  x="794" y="112" width="17.6" height="46"/>
+  <rect class="sy"  x="811.6" y="112" width="105.6" height="46"/>
+  <rect class="bp"  x="917.2" y="112" width="52.8" height="46"/>
+
+  <text class="t"  x="380" y="141">active video: 640 clocks</text>
+  <text class="ts" x="742" y="104">front 16</text>
+  <text class="ts" x="826" y="104">sync 96</text>
+  <text class="ts" x="920" y="104">back 48</text>
+  <line class="dim" x1="794" y1="104" x2="794" y2="112"/>
+  <line class="dim" x1="811.6" y1="104" x2="811.6" y2="112"/>
+  <line class="dim" x1="917.2" y1="104" x2="917.2" y2="112"/>
+
+  <!-- hsync waveform -->
+  <text class="tb" x="24" y="200">HSYNC</text>
+  <text class="ts" x="24" y="216">uo_out[7]</text>
+  <path class="sig" d="M 90 186 L 811.6 186 L 811.6 226 L 917.2 226 L 917.2 186 L 970 186"/>
+  <text class="ts" x="836" y="244">low for 96 clocks</text>
+  <line class="msr" x1="811.6" y1="256" x2="917.2" y2="256"/>
+
+  <!-- video waveform -->
+  <text class="tb" x="24" y="300">RGB</text>
+  <text class="ts" x="24" y="316">uo_out[6:4],[2:0]</text>
+  <path class="sig" d="M 90 286 L 794 286 L 794 320 L 970 320"/>
+  <text class="ts" x="800" y="338">blanking: forced black</text>
+
+  <line class="msr" x1="90" y1="352" x2="794" y2="352"/>
+  <text class="ts" x="386" y="368">640 active</text>
+  <line class="msr" x1="90" y1="380" x2="970" y2="380"/>
+  <text class="ts" x="490" y="396">800 total</text>
+
+  <line class="dim" x1="90"  y1="112" x2="90"  y2="380"/>
+  <line class="dim" x1="794" y1="112" x2="794" y2="380"/>
+  <line class="dim" x1="970" y1="112" x2="970" y2="380"/>
+  <text class="tt" x="80"  y="410">x=0</text>
+  <text class="tt" x="778" y="410">x=640</text>
+  <text class="tt" x="952" y="410">x=800</text>
+
+  <!-- ============ vertical ============ -->
+  <text class="tb" x="24" y="460">One frame &#8212; 525 scanlines (16.68 ms)</text>
+
+  <!-- scale: 1.676 px per line over 880 px -->
+  <rect class="act" x="90"  y="474" width="804.5" height="46"/>
+  <rect class="fp"  x="894.5" y="474" width="16.8" height="46"/>
+  <rect class="sy"  x="911.3" y="474" width="3.4" height="46"/>
+  <rect class="bp"  x="914.7" y="474" width="55.3" height="46"/>
+
+  <text class="t"  x="400" y="503">active video: 480 lines</text>
+  <text class="ts" x="856" y="466">front 10</text>
+  <text class="ts" x="900" y="452">sync 2</text>
+  <text class="ts" x="920" y="466">back 33</text>
+  <line class="dim" x1="894.5" y1="452" x2="894.5" y2="474"/>
+  <line class="dim" x1="911.3" y1="446" x2="911.3" y2="474"/>
+  <line class="dim" x1="914.7" y1="452" x2="914.7" y2="474"/>
+
+  <!-- vsync waveform -->
+  <text class="tb" x="24" y="562">VSYNC</text>
+  <text class="ts" x="24" y="578">uo_out[3]</text>
+  <path class="sig" d="M 90 548 L 911.3 548 L 911.3 588 L 914.7 588 L 914.7 548 L 970 548"/>
+  <text class="ts" x="830" y="612">low for 2 lines</text>
+  <line class="msr" x1="911.3" y1="600" x2="914.7" y2="600"/>
+  <line class="dim" x1="913" y1="588" x2="913" y2="600"/>
+
+  <line class="msr" x1="90" y1="636" x2="894.5" y2="636"/>
+  <text class="ts" x="440" y="652">480 active</text>
+  <line class="msr" x1="90" y1="664" x2="970" y2="664"/>
+  <text class="ts" x="510" y="680">525 total</text>
+
+  <line class="dim" x1="90"  y1="474" x2="90"  y2="664"/>
+  <line class="dim" x1="894.5" y1="474" x2="894.5" y2="664"/>
+  <line class="dim" x1="970" y1="474" x2="970" y2="664"/>
+  <text class="tt" x="80"  y="694">y=0</text>
+  <text class="tt" x="878" y="694">y=480</text>
+  <text class="tt" x="952" y="694">y=525</text>
+
+  <!-- legend -->
+  <rect class="act" x="1000" y="112" width="18" height="14"/>
+  <text class="ts" x="1024" y="124">active</text>
+  <rect class="fp" x="1000" y="136" width="18" height="14"/>
+  <text class="ts" x="1024" y="148">porch</text>
+  <rect class="sy" x="1000" y="160" width="18" height="14"/>
+  <text class="ts" x="1024" y="172">sync</text>
+</svg>
