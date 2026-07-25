@@ -580,6 +580,14 @@ what makes pixel exact frame comparison possible at all.
 | `test_health_sticky` | flag survives 256 healthy samples, gates the output on the 126 clocks where it mattered, clears on demand, output ungates | 330 samples |
 | `test_trng_statistics` | bias within a documented bound, runs distribution sane, byte chi-square under bound, no health test fires on fair input | 262 144 bits |
 
+Every one of those runs twice. `make test` runs them against the RTL; the `gl_test`
+job and `make gl` run the same module, unreduced, against the hardened gate level
+netlist, where it is checking that synthesis, placement, clock tree insertion and
+routing did not change what the design does. `test/test_gl.py` adds the two checks
+that are specific to a netlist: the tie cell driven `uio_oe`, and that the ring
+force in `test/tb.v` left the entropy path in the state the rest of the run
+assumes.
+
 ### Formal verification
 
 Two blocks are proved rather than only tested, chosen because in both cases a

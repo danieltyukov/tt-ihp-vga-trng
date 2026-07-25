@@ -459,7 +459,7 @@ Everything runs through a repo local venv, so no shell activation is needed.
 
 ```sh
 make venv     # create .venv and install test/requirements.txt
-make test     # the cocotb regression, about 6 minutes
+make test     # the cocotb regression, 11 tests, about 15 minutes
 make gl       # the same regression on the hardened gate level netlist
 make lint     # verilator --lint-only -Wall, zero warnings expected
 make ring     # ring oscillator structural testbench, plain Icarus
