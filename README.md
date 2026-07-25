@@ -193,8 +193,10 @@ So `entropy_source` has two paths. `SIM_ENTROPY = 0` keeps the ring oscillators
 and is what gets taped out; it is verified structurally only. `SIM_ENTROPY = 1`
 takes the raw bit from `ENT_IN` and elaborates no oscillator, which makes the
 debiaser, the conditioner and both health tests bit exact checkable against a
-Python model. `test/tb.v` selects the second for RTL simulation. Both builds XOR
-`ENT_IN` in, so an external noise source works in silicon too.
+Python model. `test/tb.v` selects the second for RTL simulation, the gate level
+run reaches the same state by forcing the rings in the hardened netlist, and the
+FPGA build takes it because `nextpnr-ice40` will not place a combinational loop.
+Both paths XOR `ENT_IN` in, so an external noise source works in silicon too.
 
 ### The optimiser will destroy a ring oscillator silently
 
@@ -206,8 +208,10 @@ identical oscillators is a constant. The noise source silently becomes a wire ti
 low and every downstream check still passes.
 
 The fix is one `(* keep_hierarchy *)` module per stage plus `(* keep *)` on the
-chain nodes. `make synth` counts the surviving stages and **fails the build** if
-there are not 12.
+chain nodes. `make synth` counts the surviving stages after mapping and **fails
+the build** if there are not 12, and `make harden` counts them again in the routed
+netlist, because a clean GDS with no noise source in it looks exactly like a clean
+GDS.
 
 ### The conditioner is linear, and the statistics measure it, not silicon
 
