@@ -269,9 +269,9 @@ output once the source has failed" rule.
 
 ![Per submodule area and tile budget](docs/img/synth_area.png)
 
-**Start with the tile, because the number everyone quotes for it is wrong.** The
-Tiny Tapeout project template says, in a comment in `info.yaml`, that "a single
-tile is about 167x108 uM". For this shuttle it is not. Tiny Tapeout's own
+**Start with the tile, because the number the template gives for it is wrong.**
+The Tiny Tapeout project template says, in a comment in `info.yaml`, that "a
+single tile is about 167x108 uM". For this shuttle it is not. Tiny Tapeout's own
 floorplan templates in `tt-support-tools`, which are the DEF files their `gds`
 action hands the floorplanner, give:
 
@@ -295,10 +295,10 @@ real `sg13g2` library from
 | post route, plus fill | 28941 um2, 2343 instances | 92.4% | same run |
 
 Synthesis says this fits a 1x1 tile comfortably. Post route it is 82.7% of the
-tile, which by the usual rule of thumb says it does not fit at all: LibreLane and
-`src/config.json` both target 60% placement density. The rule of thumb is not the
-answer either. The answer is to run it, and the answer is that it fits, but only
-just:
+tile, which by the usual rule of thumb says it does not fit at all: LibreLane's
+default placement density target, and the template's, is 60%. The rule of thumb
+is no more reliable than the forecast. What settles it is running the thing, and
+it does fit, but only just:
 
 | target density | what happens |
 | --- | --- |
@@ -309,6 +309,12 @@ just:
 `src/config.json` invites exactly one edit, `PL_TARGET_DENSITY_PCT`, for exactly
 the `GPL-0302` error, so that is the one thing changed there, and the three
 measurements above are written next to it. `tiles: "1x1"`.
+
+Those three rows are from `make harden`, which only fixes `DIE_AREA`. Tiny
+Tapeout's own `gds` job starts from `tt_block_1x1_pgvdd.def`, which carries their
+pin frame and power grid as well, and it is more forgiving: a push with the target
+at 80 hardened and cleared `precheck` there while failing locally. The committed
+value is 85, which is what both flows accept.
 
 It costs something. A 1x2 die was hardened for comparison, `make harden` with
 `HARDEN_DIE="202.08 313.74"`, and at 40.9% density it routes with **41781 um** of
@@ -471,7 +477,8 @@ cocotb 2.0.1.
 `make sta` additionally needs `openroad` (OpenSTA 3.1.0) and an installed
 `ihp-sg13g2` PDK; `make harden` needs `librelane` 3.0.0.dev44 and `klayout`. Both
 default to `/home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2` and take
-`PDK_ROOT_IHP` as an override. `make synth` works without an installed PDK: it
+`PDK_ROOT_IHP` as an override. `make gl` needs the PDK cell models and downloads
+Tiny Tapeout's Icarus itself. `make synth` works without an installed PDK: it
 falls back to fetching the one liberty file it needs.
 
 `make images` reads what `make test` and `make capture` left in `test/output/`, so
@@ -611,23 +618,25 @@ The result, on the netlist the `gds` job produced:
 test_gl_tie_cells                 PASS
 test_gl_rings_are_broken          PASS
 test_reset                        PASS
-test_vga_timing                   PASS      170 s
-test_golden_frames                PASS      548 s   8 frames, 2 457 600 pixels
-test_pattern_switch_mid_frame     PASS       75 s
+test_vga_timing                   PASS      216 s
+test_golden_frames                PASS      513 s   8 frames, 2 457 600 pixels
+test_pattern_switch_mid_frame     PASS       95 s
 test_von_neumann                  PASS
 test_lfsr_sequence                PASS
-test_lfsr_period                  PASS
+test_lfsr_period                  PASS       13 s   all 65 536 LFSR states
 test_health_rct / apt / sticky    PASS
-test_trng_statistics              PASS       27 s
+test_trng_statistics              PASS       47 s   262 144 output bits
+                                  ------
+TESTS=13 PASS=13 FAIL=0                     891 s
 ```
 
 Nothing was reduced for the gate level run: the same 11 tests, the same 8 golden
-frames and the same 262 144 sample statistics run against the netlist, in about
-14 minutes. The only difference is that `test/tbutil.py` reads the four internal
-probes through flat escaped names (`\rnd_state[0] `) instead of through the RTL
-hierarchy, and the frames are not written to `test/output/`, because every image
-in `docs/img` comes from the RTL run and a second writer would quietly make that
-untrue.
+frames, the same 65 536 state LFSR walk and the same 262 144 sample statistics run
+against the netlist, in about 15 minutes. The only difference is that
+`test/tbutil.py` reads the four internal probes through the flat netlist names
+(`\rnd_state[0] `) instead of through the RTL hierarchy, and the frames are not
+written to `test/output/`, because every image in `docs/img` comes from the RTL
+run and a second writer would quietly make that untrue.
 
 What this does **not** verify is the oscillator, which is held broken throughout.
 Nothing in an event simulator can verify it. That is covered structurally by
@@ -706,13 +715,15 @@ src/                 20 Verilog files, one module each
   von_neumann.v                   debiaser
   lfsr_whitener.v                 conditioner and pixel rate PRNG
   health_monitor.v                repetition count and adaptive proportion tests
-  config.json                     Librelane config, template default
+  config.json                     LibreLane config, template default plus a
+                                  measured PL_TARGET_DENSITY_PCT
 test/
   test.py                         the 11 test regression
   model.py                        independent cycle accurate reference model
   tbutil.py                       reset, lockstep stepping, frame capture
   capture.py                      animation frame capture, also model verified
-  tb.v                            cocotb wrapper, selects SIM_ENTROPY=1
+  tb.v                            cocotb wrapper: SIM_ENTROPY=1 at RTL, and the
+                                  ring force that makes gate level simulatable
   tb_ring.v                       ring oscillator structural testbench
   test_gl.py                      netlist specific checks, run before the suite
 scripts/
@@ -754,8 +765,9 @@ Collected in one place so none of it has to be dug out of the prose:
 
 - Nothing in this repository measures entropy from silicon. The ring oscillator
   path is verified structurally: it oscillates, it stops when disabled, the two
-  rings have different periods, and all 12 stages survive synthesis. Its
-  statistical behaviour is not and cannot be tested in an event simulator.
+  rings have different periods, and all 12 stages survive both synthesis and
+  routing. Its statistical behaviour is not and cannot be tested in an event
+  simulator.
 - Every statistical figure quoted was produced with a Python pseudorandom
   generator driven into `ENT_IN`. They characterise the debiaser and the LFSR
   conditioner.
@@ -788,8 +800,10 @@ Collected in one place so none of it has to be dug out of the prose:
   the harness pin frame and power grid obstructions. Their flow runs on every push
   and passes, so the difference is not hypothetical, but the two are not the same
   floorplan.
-- **The tile fits at 82.7% density, which is not much room.** Placement fails
-  outright at a 60% or an 80% target; 85 is what works. Any future change needs
+- **The tile fits at 82.7% density, which is not much room.** `make harden` fails
+  placement outright at a 60% target and at an 80% one; 85 is what works there.
+  Tiny Tapeout's own flow is more forgiving and hardened it at 80, but the
+  committed value is 85 because that is what both accept. Any future change needs
   the density rechecked rather than assumed.
 
 ## License

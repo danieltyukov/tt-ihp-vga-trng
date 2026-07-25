@@ -61,6 +61,12 @@ So `tiles: "1x1"`, with `PL_TARGET_DENSITY_PCT` raised to 85 in
 `src/config.json`. That file invites exactly one edit, that key, for exactly the
 `GPL-0302` error, and the three rows above are recorded next to it.
 
+Those rows are from `make harden`, which only fixes `DIE_AREA`. Tiny Tapeout's own
+`gds` job starts from `tt_block_1x1_pgvdd.def`, which carries their pin frame and
+power grid as well, and it is more forgiving: a push with the target at 80
+hardened and cleared `precheck` there while failing locally. 85 is committed
+because it is what both flows accept.
+
 ### What it costs
 
 A 1x2 die was hardened for comparison (`make harden` with

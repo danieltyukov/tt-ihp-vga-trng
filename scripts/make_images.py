@@ -393,16 +393,21 @@ def plot_area(area, harden=None):
             color=INK,
         )
 
-    # the two tile footprints as reference lines, named in the legend rather
-    # than annotated in place: the panel is too narrow for the text to fit.
-    ax2.axhline(tile_area, color=BAD, linewidth=1.8, linestyle="--")
-    ax2.axhline(2 * tile_area, color=GOOD, linewidth=1.8, linestyle="--")
+    # the tile itself and the placement density target as reference lines, named
+    # in the legend rather than annotated in place: the panel is too narrow for
+    # the text to fit.
+    budget = tile_area * tile["target_density"]
+    ax2.axhline(tile_area, color=GOOD, linewidth=1.8, linestyle="--")
+    ax2.axhline(budget, color=BAD, linewidth=1.8, linestyle="--")
     ax2.legend(
         [
-            plt.Line2D([], [], color=BAD, lw=1.8, ls="--"),
             plt.Line2D([], [], color=GOOD, lw=1.8, ls="--"),
+            plt.Line2D([], [], color=BAD, lw=1.8, ls="--"),
         ],
-        [f"1x1 tile, {tile_area:.0f} um2", f"1x2 tile, {2 * tile_area:.0f} um2"],
+        [
+            f"1x1 tile, {tile_area:.0f} um2",
+            f"at {tile['target_density'] * 100:.0f}% density, {budget:.0f} um2",
+        ],
         fontsize=8.5,
         frameon=False,
         loc="upper left",
@@ -410,8 +415,7 @@ def plot_area(area, harden=None):
     if harden:
         ax2.annotate(
             f"post route cells are\n"
-            f"{harden['density_real_over_1x1'] * 100:.0f}% of a 1x1 tile\n"
-            f"{harden['density_real_over_1x2'] * 100:.0f}% of a 1x2 tile",
+            f"{harden['density_real_over_1x1'] * 100:.1f}% of a 1x1 tile",
             xy=(0.5, tile_area),
             xytext=(0, -46),
             textcoords="offset points",
@@ -419,7 +423,7 @@ def plot_area(area, harden=None):
             fontsize=9,
             color=INK,
         )
-    ax2.set_ylim(0, 2 * tile_area * 1.18)
+    ax2.set_ylim(0, tile_area * 1.25)
     ax2.set_ylabel("cell area, um2")
     ax2.set_title("Area against the tile footprint\n" + subtitle, fontsize=10.5, color=INK)
 
