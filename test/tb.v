@@ -16,9 +16,14 @@
  */
 module tb ();
 
+  // The regression runs about 230 ms of simulated time, so a full hierarchy
+  // dump is tens of megabytes and costs roughly 20% of the runtime. By default
+  // only the tile pins are dumped, which is what you look at for VGA timing.
+  // Pass +dump_all to vvp for the whole hierarchy when debugging internals.
   initial begin
     $dumpfile("tb.fst");
-    $dumpvars(0, tb);
+    if ($test$plusargs("dump_all")) $dumpvars(0, tb);
+    else $dumpvars(1, tb);
     #1;
   end
 
