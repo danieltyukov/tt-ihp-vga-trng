@@ -546,7 +546,11 @@ fails the build if the optimiser collapses either ring.
 `test/Makefile` still supports `make -B GATES=yes`, including a fix the stock
 template needs: `sg13g2_udp.v` has to be read before `sg13g2_stdcell.v` or
 elaboration fails with 154 unknown module errors for `ihp_dff_r`, `ihp_mux2` and
-`ihp_mux4`.
+`ihp_mux4`. It runs [`test/test_gl.py`](test/test_gl.py), which checks the part
+that is simulatable and passes: the netlist elaborates against the PDK models,
+`uio_oe` reads exactly `0b11100000` through the tie cells, and time advances
+normally while `rst_n` is low and the ring is gated off. It logs the unresolved
+`uo_out` as an observation rather than asserting either way about it.
 
 ### The FPGA path, also validated locally
 
@@ -607,6 +611,7 @@ test/
   capture.py                      animation frame capture, also model verified
   tb.v                            cocotb wrapper, selects SIM_ENTROPY=1
   tb_ring.v                       ring oscillator structural testbench
+  test_gl.py                      what is checkable on the hardened netlist
 scripts/
   synth_report.sh                 Yosys area report against the real IHP liberty
   parse_synth.py                  Yosys text to docs/synth/area.json
