@@ -1,0 +1,265 @@
+OpenROAD 26Q3-771-g7cfb2105c9 
+Features included (+) or not (-): +GPU +GUI +Python
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ODB-0227] LEF file: /home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2/libs.ref/sg13g2_stdcell/lef/sg13g2_tech.lef, created 19 layers, 70 vias
+[INFO ODB-0227] LEF file: /home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2/libs.ref/sg13g2_stdcell/lef/sg13g2_stdcell.lef, created 84 library cells
+OpenSTA report for tt_um_danieltyukov_vga_trng
+liberty : sg13g2_stdcell_fast_1p65V_m40C.lib
+netlist : netlist_fast_1p65V_m40C.v
+period  : 39.7220 ns (25.1750 MHz)
+
+=== setup, worst path ===
+Startpoint: u_sync/_438_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: u_pat/u_p7/_673_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ u_sync/_438_/CLK (sg13g2_dfrbpq_1)
+   0.3501    0.3501 ^ u_sync/_438_/Q (sg13g2_dfrbpq_1)
+   0.2071    0.5572 v u_sync/_316_/Y (sg13g2_nand3b_1)
+   0.0845    0.6417 ^ u_sync/_319_/Y (sg13g2_nor2_1)
+   0.0431    0.6848 v u_pat/u_p7/_471_/Y (sg13g2_nand3_1)
+   0.8473    1.5321 ^ u_pat/u_p7/_472_/Y (sg13g2_nor2_1)
+   0.1077    1.6398 v u_pat/u_p7/_475_/Y (sg13g2_a21oi_1)
+   0.0488    1.6885 ^ u_pat/u_p7/_478_/Y (sg13g2_a21oi_1)
+   0.0488    1.7373 ^ u_pat/u_p7/_479_/Y (sg13g2_nor2b_1)
+   0.0000    1.7373 ^ u_pat/u_p7/_673_/D (sg13g2_dfrbpq_1)
+             1.7373   data arrival time
+
+  39.7220   39.7220   clock clk (rise edge)
+   0.0000   39.7220   clock network delay (ideal)
+   0.0000   39.7220   clock reconvergence pessimism
+            39.7220 ^ u_pat/u_p7/_673_/CLK (sg13g2_dfrbpq_1)
+  -0.0500   39.6720   library setup time
+            39.6720   data required time
+-------------------------------------------------------------
+            39.6720   data required time
+            -1.7373   data arrival time
+-------------------------------------------------------------
+            37.9347   slack (MET)
+
+
+
+=== setup, five worst endpoints ===
+Startpoint: u_sync/_438_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: u_pat/u_p7/_673_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ u_sync/_438_/CLK (sg13g2_dfrbpq_1)
+   0.3501    0.3501 ^ u_sync/_438_/Q (sg13g2_dfrbpq_1)
+   0.2071    0.5572 v u_sync/_316_/Y (sg13g2_nand3b_1)
+   0.0845    0.6417 ^ u_sync/_319_/Y (sg13g2_nor2_1)
+   0.0431    0.6848 v u_pat/u_p7/_471_/Y (sg13g2_nand3_1)
+   0.8473    1.5321 ^ u_pat/u_p7/_472_/Y (sg13g2_nor2_1)
+   0.1077    1.6398 v u_pat/u_p7/_475_/Y (sg13g2_a21oi_1)
+   0.0488    1.6885 ^ u_pat/u_p7/_478_/Y (sg13g2_a21oi_1)
+   0.0488    1.7373 ^ u_pat/u_p7/_479_/Y (sg13g2_nor2b_1)
+   0.0000    1.7373 ^ u_pat/u_p7/_673_/D (sg13g2_dfrbpq_1)
+             1.7373   data arrival time
+
+  39.7220   39.7220   clock clk (rise edge)
+   0.0000   39.7220   clock network delay (ideal)
+   0.0000   39.7220   clock reconvergence pessimism
+            39.7220 ^ u_pat/u_p7/_673_/CLK (sg13g2_dfrbpq_1)
+  -0.0500   39.6720   library setup time
+            39.6720   data required time
+-------------------------------------------------------------
+            39.6720   data required time
+            -1.7373   data arrival time
+-------------------------------------------------------------
+            37.9347   slack (MET)
+
+
+Startpoint: u_sync/_438_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: u_pat/u_p7/_674_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ u_sync/_438_/CLK (sg13g2_dfrbpq_1)
+   0.3501    0.3501 ^ u_sync/_438_/Q (sg13g2_dfrbpq_1)
+   0.2071    0.5572 v u_sync/_316_/Y (sg13g2_nand3b_1)
+   0.0845    0.6417 ^ u_sync/_319_/Y (sg13g2_nor2_1)
+   0.0431    0.6848 v u_pat/u_p7/_471_/Y (sg13g2_nand3_1)
+   0.8473    1.5321 ^ u_pat/u_p7/_472_/Y (sg13g2_nor2_1)
+   0.1077    1.6398 v u_pat/u_p7/_482_/Y (sg13g2_a21oi_1)
+   0.0488    1.6885 ^ u_pat/u_p7/_484_/Y (sg13g2_a21oi_1)
+   0.0488    1.7373 ^ u_pat/u_p7/_485_/Y (sg13g2_nor2b_1)
+   0.0000    1.7373 ^ u_pat/u_p7/_674_/D (sg13g2_dfrbpq_1)
+             1.7373   data arrival time
+
+  39.7220   39.7220   clock clk (rise edge)
+   0.0000   39.7220   clock network delay (ideal)
+   0.0000   39.7220   clock reconvergence pessimism
+            39.7220 ^ u_pat/u_p7/_674_/CLK (sg13g2_dfrbpq_1)
+  -0.0500   39.6720   library setup time
+            39.6720   data required time
+-------------------------------------------------------------
+            39.6720   data required time
+            -1.7373   data arrival time
+-------------------------------------------------------------
+            37.9347   slack (MET)
+
+
+Startpoint: u_sync/_438_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: u_pat/u_p7/_675_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ u_sync/_438_/CLK (sg13g2_dfrbpq_1)
+   0.3501    0.3501 ^ u_sync/_438_/Q (sg13g2_dfrbpq_1)
+   0.2071    0.5572 v u_sync/_316_/Y (sg13g2_nand3b_1)
+   0.0845    0.6417 ^ u_sync/_319_/Y (sg13g2_nor2_1)
+   0.0431    0.6848 v u_pat/u_p7/_471_/Y (sg13g2_nand3_1)
+   0.8473    1.5321 ^ u_pat/u_p7/_472_/Y (sg13g2_nor2_1)
+   0.1077    1.6398 v u_pat/u_p7/_487_/Y (sg13g2_a21oi_1)
+   0.0488    1.6885 ^ u_pat/u_p7/_489_/Y (sg13g2_a21oi_1)
+   0.0488    1.7373 ^ u_pat/u_p7/_490_/Y (sg13g2_nor2b_1)
+   0.0000    1.7373 ^ u_pat/u_p7/_675_/D (sg13g2_dfrbpq_1)
+             1.7373   data arrival time
+
+  39.7220   39.7220   clock clk (rise edge)
+   0.0000   39.7220   clock network delay (ideal)
+   0.0000   39.7220   clock reconvergence pessimism
+            39.7220 ^ u_pat/u_p7/_675_/CLK (sg13g2_dfrbpq_1)
+  -0.0500   39.6720   library setup time
+            39.6720   data required time
+-------------------------------------------------------------
+            39.6720   data required time
+            -1.7373   data arrival time
+-------------------------------------------------------------
+            37.9347   slack (MET)
+
+
+Startpoint: u_sync/_438_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: u_pat/u_p7/_676_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ u_sync/_438_/CLK (sg13g2_dfrbpq_1)
+   0.3501    0.3501 ^ u_sync/_438_/Q (sg13g2_dfrbpq_1)
+   0.2071    0.5572 v u_sync/_316_/Y (sg13g2_nand3b_1)
+   0.0845    0.6417 ^ u_sync/_319_/Y (sg13g2_nor2_1)
+   0.0431    0.6848 v u_pat/u_p7/_471_/Y (sg13g2_nand3_1)
+   0.8473    1.5321 ^ u_pat/u_p7/_472_/Y (sg13g2_nor2_1)
+   0.1077    1.6398 v u_pat/u_p7/_492_/Y (sg13g2_a21oi_1)
+   0.0488    1.6885 ^ u_pat/u_p7/_494_/Y (sg13g2_a21oi_1)
+   0.0488    1.7373 ^ u_pat/u_p7/_495_/Y (sg13g2_nor2b_1)
+   0.0000    1.7373 ^ u_pat/u_p7/_676_/D (sg13g2_dfrbpq_1)
+             1.7373   data arrival time
+
+  39.7220   39.7220   clock clk (rise edge)
+   0.0000   39.7220   clock network delay (ideal)
+   0.0000   39.7220   clock reconvergence pessimism
+            39.7220 ^ u_pat/u_p7/_676_/CLK (sg13g2_dfrbpq_1)
+  -0.0500   39.6720   library setup time
+            39.6720   data required time
+-------------------------------------------------------------
+            39.6720   data required time
+            -1.7373   data arrival time
+-------------------------------------------------------------
+            37.9347   slack (MET)
+
+
+Startpoint: u_sync/_438_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: u_pat/u_p7/_677_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ u_sync/_438_/CLK (sg13g2_dfrbpq_1)
+   0.3501    0.3501 ^ u_sync/_438_/Q (sg13g2_dfrbpq_1)
+   0.2071    0.5572 v u_sync/_316_/Y (sg13g2_nand3b_1)
+   0.0845    0.6417 ^ u_sync/_319_/Y (sg13g2_nor2_1)
+   0.0431    0.6848 v u_pat/u_p7/_471_/Y (sg13g2_nand3_1)
+   0.8473    1.5321 ^ u_pat/u_p7/_472_/Y (sg13g2_nor2_1)
+   0.1077    1.6398 v u_pat/u_p7/_497_/Y (sg13g2_a21oi_1)
+   0.0488    1.6885 ^ u_pat/u_p7/_499_/Y (sg13g2_a21oi_1)
+   0.0488    1.7373 ^ u_pat/u_p7/_500_/Y (sg13g2_nor2b_1)
+   0.0000    1.7373 ^ u_pat/u_p7/_677_/D (sg13g2_dfrbpq_1)
+             1.7373   data arrival time
+
+  39.7220   39.7220   clock clk (rise edge)
+   0.0000   39.7220   clock network delay (ideal)
+   0.0000   39.7220   clock reconvergence pessimism
+            39.7220 ^ u_pat/u_p7/_677_/CLK (sg13g2_dfrbpq_1)
+  -0.0500   39.6720   library setup time
+            39.6720   data required time
+-------------------------------------------------------------
+            39.6720   data required time
+            -1.7373   data arrival time
+-------------------------------------------------------------
+            37.9347   slack (MET)
+
+
+
+=== hold, worst path ===
+Startpoint: rst_n (input port clocked by clk)
+Endpoint: u_pat/u_p5/_844_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: min
+
+    Delay      Time   Description
+-------------------------------------------------------------
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000 ^ input external delay
+   0.0000    0.0000 ^ rst_n (in)
+   0.0150    0.0150 v u_pat/u_p5/_760_/Y (sg13g2_nand2_1)
+   0.0000    0.0150 v u_pat/u_p5/_844_/D (sg13g2_dfrbpq_1)
+             0.0150   data arrival time
+
+   0.0000    0.0000   clock clk (rise edge)
+   0.0000    0.0000   clock network delay (ideal)
+   0.0000    0.0000   clock reconvergence pessimism
+             0.0000 ^ u_pat/u_p5/_844_/CLK (sg13g2_dfrbpq_1)
+  -0.0200   -0.0200   library hold time
+            -0.0200   data required time
+-------------------------------------------------------------
+            -0.0200   data required time
+            -0.0150   data arrival time
+-------------------------------------------------------------
+             0.0350   slack (MET)
+
+
+
+=== area ===
+Design area 18481 um^2 100% utilization.
+
+=== summary ===
+worst setup slack : 37.9347 ns
+worst hold slack  : 0.0350 ns
+total negative slack (setup) : 0.0
+total negative slack (hold)  : 0.0
+fmax from the setup critical path : 559.5004 MHz
+margin over the 25.1750 MHz target : 22.22x
+
+PERIOD 39.7220
+WORST_SETUP 37.9347
+WORST_HOLD 0.0350
+FMAX_MHZ 559.5004
+TNS_MAX 0.0

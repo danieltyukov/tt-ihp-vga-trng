@@ -32,3 +32,6 @@ test/gate_level_netlist.v
 
 # cocotb result file from the capture run
 test/results_capture.xml
+
+# LibreLane hardening run directories (only the extracted reports are committed)
+runs/

@@ -1,0 +1,32 @@
+{
+  "period_ns": 39.722,
+  "target_mhz": 25.175,
+  "signoff_corner": "slow_1p08V_125C",
+  "corners": {
+    "slow_1p08V_125C": {
+      "period": 39.722,
+      "worst_setup": 33.8093,
+      "worst_hold": 0.0989,
+      "fmax_mhz": 169.1284,
+      "tns_max": 0.0,
+      "loop_warnings": 0
+    },
+    "typ_1p20V_25C": {
+      "period": 39.722,
+      "worst_setup": 35.9221,
+      "worst_hold": 0.0643,
+      "fmax_mhz": 263.1626,
+      "tns_max": 0.0,
+      "loop_warnings": 0
+    },
+    "fast_1p65V_m40C": {
+      "period": 39.722,
+      "worst_setup": 37.9347,
+      "worst_hold": 0.035,
+      "fmax_mhz": 559.5004,
+      "tns_max": 0.0,
+      "loop_warnings": 0
+    }
+  },
+  "note": "Post synthesis STA on a Yosys mapped netlist, no placement or routing, so interconnect is estimated by the liberty wireload model rather than extracted. The post route numbers are in docs/hardening/metrics.json."
+}

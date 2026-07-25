@@ -15,16 +15,24 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Prefer an installed IHP PDK. Fall back to fetching just the one liberty file so
+# this still works on a bare CI runner with no PDK. The two are byte identical:
+# md5 d26d48fd28a86da25e19c34a9180512f for sg13g2_stdcell_typ_1p20V_25C.lib.
+PDK="${PDK_ROOT_IHP:-/home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2}"
 LIB_DIR="$ROOT/build"
-LIB="$LIB_DIR/sg13g2_stdcell_typ_1p20V_25C.lib"
+LIB="$PDK/libs.ref/sg13g2_stdcell/lib/sg13g2_stdcell_typ_1p20V_25C.lib"
 LIB_URL="https://raw.githubusercontent.com/IHP-GmbH/IHP-Open-PDK/main/ihp-sg13g2/libs.ref/sg13g2_stdcell/lib/sg13g2_stdcell_typ_1p20V_25C.lib"
 
 mkdir -p "$LIB_DIR" docs/synth
 
 if [ ! -f "$LIB" ]; then
-  echo "fetching IHP sg13g2 liberty into build/ (one time, needs network)"
-  curl -sSL -o "$LIB" "$LIB_URL"
+  LIB="$LIB_DIR/sg13g2_stdcell_typ_1p20V_25C.lib"
+  if [ ! -f "$LIB" ]; then
+    echo "no installed IHP PDK; fetching the typ liberty into build/ (needs network)"
+    curl -sSL -o "$LIB" "$LIB_URL"
+  fi
 fi
+echo "liberty: $LIB"
 
 TOP=tt_um_danieltyukov_vga_trng
 SRC=(src/*.v)
