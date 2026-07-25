@@ -2,35 +2,32 @@ Placing PLLs..
 Packing PLLs..
 promoting clk$SB_IO_IN (fanout 140)
 Device utilisation:
-	         ICESTORM_LC:   678/ 5280    12%
+	         ICESTORM_LC:   680/ 5280    12%
 	        ICESTORM_RAM:     0/   30     0%
 	               SB_IO:    26/   96    27%
 	               SB_GB:     6/    8    75%
 	        ICESTORM_PLL:     0/    1     0%
 Max frequency for clock 'clk$SB_IO_IN_$glb_clk': 34.72 MHz (PASS at 25.17 MHz)
-Max delay <async>                       -> <async>                      : 29.51 ns
-Max delay <async>                       -> posedge clk$SB_IO_IN_$glb_clk: 25.04 ns
-Max delay posedge clk$SB_IO_IN_$glb_clk -> <async>                      : 40.91 ns
+Max delay <async>                       -> <async>                      : 29.15 ns
+Max delay <async>                       -> posedge clk$SB_IO_IN_$glb_clk: 25.17 ns
+Max delay posedge clk$SB_IO_IN_$glb_clk -> <async>                      : 41.21 ns
 Critical path report for clock 'clk$SB_IO_IN_$glb_clk' (posedge -> posedge):
- 0.7 23.6    Net $nextpnr_ICESTORM_LC_35$I3 budget 0.660000 ns (2,16) -> (2,16)
+ 0.7 23.6    Net $nextpnr_ICESTORM_LC_35$I3 budget 0.660000 ns (13,16) -> (13,16)
                Sink $nextpnr_ICESTORM_LC_35.I3
  0.9 24.5  Source $nextpnr_ICESTORM_LC_35.O
- 6.1  6.1    Net sw[3]$SB_IO_IN budget 4.635000 ns (18,0) -> (10,18)
- 6.1 29.6    Net vga[1]$SB_IO_OUT budget 2.567000 ns (9,20) -> (18,0)
+ 5.6  5.6    Net sw[0]$SB_IO_IN budget 4.635000 ns (18,0) -> (12,16)
+ 5.6 29.6    Net vga[0]$SB_IO_OUT budget 2.293000 ns (10,17) -> (8,0)
 Critical path report for cross-domain path '<async>' -> 'posedge clk$SB_IO_IN_$glb_clk':
- 5.0  5.0    Net ent_in$SB_IO_IN budget 0.000000 ns (6,31) -> (1,18)
- 0.7 20.1    Net $nextpnr_ICESTORM_LC_35$I3 budget 0.660000 ns (2,16) -> (2,16)
+ 4.9  4.9    Net ent_in$SB_IO_IN budget 0.000000 ns (9,31) -> (14,17)
+ 0.7 20.1    Net $nextpnr_ICESTORM_LC_35$I3 budget 0.660000 ns (13,16) -> (13,16)
                Sink $nextpnr_ICESTORM_LC_35.I3
- 0.9 21.0  Source $nextpnr_ICESTORM_LC_35.O
+ 0.9 20.9  Source $nextpnr_ICESTORM_LC_35.O
 Critical path report for cross-domain path 'posedge clk$SB_IO_IN_$glb_clk' -> '<async>':
- 0.7 20.0    Net $nextpnr_ICESTORM_LC_22$I3 budget 0.660000 ns (8,24) -> (8,24)
-               Sink $nextpnr_ICESTORM_LC_22.I3
- 0.9 20.9  Source $nextpnr_ICESTORM_LC_22.O
- 0.7 24.4    Net $nextpnr_ICESTORM_LC_18$I3 budget 0.660000 ns (9,24) -> (9,24)
+ 0.7 23.8    Net $nextpnr_ICESTORM_LC_18$I3 budget 0.660000 ns (4,20) -> (4,20)
                Sink $nextpnr_ICESTORM_LC_18.I3
- 0.9 25.3  Source $nextpnr_ICESTORM_LC_18.O
- 4.8 42.6    Net vga[0]$SB_IO_OUT budget 2.293000 ns (9,22) -> (17,31)
+ 0.9 24.7  Source $nextpnr_ICESTORM_LC_18.O
+ 5.6 44.0    Net vga[0]$SB_IO_OUT budget 2.293000 ns (10,17) -> (8,0)
 Max frequency for clock 'clk$SB_IO_IN_$glb_clk': 33.27 MHz (PASS at 25.17 MHz)
-Max delay <async>                       -> <async>                      : 29.64 ns
-Max delay <async>                       -> posedge clk$SB_IO_IN_$glb_clk: 26.55 ns
-Max delay posedge clk$SB_IO_IN_$glb_clk -> <async>                      : 42.56 ns
+Max delay <async>                       -> <async>                      : 29.61 ns
+Max delay <async>                       -> posedge clk$SB_IO_IN_$glb_clk: 26.48 ns
+Max delay posedge clk$SB_IO_IN_$glb_clk -> <async>                      : 43.96 ns

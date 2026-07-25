@@ -29,6 +29,27 @@
  * In both builds ext_bit (uio_in[0]) is XORed into the sampled value, so an
  * external noise source can also be injected in silicon.
  *
+ * The FPGA build takes the same path
+ * ----------------------------------
+ * `SYNTH is defined by tt_fpga.py, and by nothing else that touches this file:
+ * the LibreLane ASIC flow runs with VERILOG_DEFINES null (the yosys synthesis
+ * step's config.json in the run directory records it), scripts/synth_report.sh
+ * passes no defines, and the cocotb build passes only `SIM. When set, the ring
+ * oscillators are not elaborated, because nextpnr-ice40 refuses a design with a
+ * combinational loop outright:
+ *
+ *   ERROR: timing analysis failed due to presence of combinatorial loops
+ *
+ * That is not a workaround for the FPGA, it is the only correct thing to build
+ * there. An FPGA cannot host a usable ring oscillator TRNG out of routed LUTs
+ * anyway, so on a board the entropy has to arrive on ENT_IN from outside. The
+ * pattern engine, the debiaser, the conditioner and the health tests are all the
+ * same logic in both builds.
+ *
+ * If the rings ever silently stopped being elaborated for the ASIC, two committed
+ * checks would fail: scripts/synth_report.sh counts all 12 mapped stages after
+ * yosys, and scripts/parse_harden.py counts them again in the routed netlist.
+ *
  * Sampling rate
  * -------------
  * The oscillator is sampled once every 8 pixel clocks by default, which at
@@ -59,8 +80,15 @@ module entropy_source #(
 
   wire osc_bit;
 
+`ifdef SYNTH
+  // iCE40 build: no rings, entropy comes in on the pin. See the header.
+  localparam integer USE_EXT = 1;
+`else
+  localparam integer USE_EXT = (SIM_ENTROPY != 0) ? 1 : 0;
+`endif
+
   generate
-    if (SIM_ENTROPY != 0) begin : g_sim_source
+    if (USE_EXT != 0) begin : g_sim_source
       assign osc_bit = 1'b0;
     end else begin : g_ring_source
       // Two chains of coprime length. XORing them makes each sample depend on

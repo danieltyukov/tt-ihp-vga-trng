@@ -15,6 +15,7 @@ cells that implement the design.
 
 import json
 import pathlib
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -42,6 +43,49 @@ CLEAN = {
 # Setup and hold are checked against total negative slack rather than a violation
 # count, because this LibreLane version reports TNS but no per-check count.
 TNS_CLEAN = ("timing__setup__tns", "timing__hold__tns")
+
+# Both rings, stage by stage, as the routed netlist must still contain them:
+# 4 inverters and 1 enable NAND for the 5 stage ring, 6 and 1 for the 7 stage one.
+RING_STAGES = {"a": 5, "b": 7}
+
+
+def check_rings(run):
+    """Count the ring oscillator cells in the routed netlist.
+
+    scripts/synth_report.sh already checks this after yosys, but the failure mode
+    it guards against is silent, and there is more than one way to reach it: an
+    optimiser cancelling inverter pairs, a lost keep attribute, or a stray
+    `SYNTH define reaching the ASIC flow and selecting the external entropy path
+    that src/entropy_source.v builds for the FPGA. Any of those produces a
+    perfectly clean GDS with no noise source in it, so the routed netlist is
+    checked too rather than trusted.
+    """
+    nls = sorted((run / "final" / "nl").glob("*.nl.v"))
+    if not nls:
+        print("note: no final netlist to check the ring oscillators in")
+        return False
+    text = nls[0].read_text()
+    failed = False
+    total = 0
+    for ring, stages in RING_STAGES.items():
+        inv = len(re.findall(rf"u_osc_{ring}\.g_stage\[\d+\]\.u_inv", text))
+        gate = len(re.findall(rf"u_osc_{ring}\.u_gate", text))
+        total += inv + gate
+        want_inv = stages - 1
+        ok = inv == want_inv and gate == 1
+        print(
+            f"ring {ring}: {inv} inverter + {gate} enable gate cell(s) routed, "
+            f"expected {want_inv} + 1{'' if ok else '   <-- WRONG'}"
+        )
+        if not ok:
+            failed = True
+    if failed:
+        print(
+            f"\nRING OSCILLATORS NOT INTACT: {total} of "
+            f"{sum(RING_STAGES.values())} stages survived to the routed netlist. "
+            "The TRNG in this GDS has no noise source."
+        )
+    return failed
 
 
 def main():
@@ -120,7 +164,12 @@ def main():
     print(f"power               {summary['power_total_w'] * 1000:>12.4f} mW")
     print(f"wirelength          {summary['wirelength_um']:>12} um")
 
+    print()
+    rings_broken = check_rings(run)
+
     failed = []
+    if rings_broken:
+        failed.append("the ring oscillators did not survive to the routed netlist")
     for k, want in CLEAN.items():
         got = m.get(k)
         if got is None:

@@ -4,12 +4,12 @@
   "target_mhz": 25.175,
   "achieved_mhz": 33.27,
   "margin": 1.322,
-  "clk_to_pad_ns": 42.56,
+  "clk_to_pad_ns": 43.96,
   "pixel_period_ns": 39.7219,
-  "icetime_longest_path_ns": 44.42,
+  "icetime_longest_path_ns": 45.29,
   "utilisation": {
     "ICESTORM_LC": {
-      "used": 678,
+      "used": 680,
       "available": 5280,
       "percent": 12
     },
@@ -86,5 +86,5 @@
   },
   "synth_cells": {},
   "bitstream_bytes": 104090,
-  "note": "Validates that the RTL is implementable on the device Tiny Tapeout's FPGA emulator uses, fits it, and meets the pixel clock. Does NOT validate the fpga GitHub workflow, which needs Tiny Tapeout's container and board harness. Built through fpga/fpga_top.v with SIM_ENTROPY=1, because the ring oscillators are combinational loops that synth_ice40 will not build, and because an FPGA cannot host a usable ring oscillator TRNG anyway. achieved_mhz is the register to register frequency, which is what decides whether the design runs. clk_to_pad_ns is the unconstrained clock to output pad delay, which exceeds one pixel period here; on a real board that path needs pin constraints and probably an output register stage."
+  "note": "Validates that the RTL is implementable on the device Tiny Tapeout's FPGA emulator uses, fits it, and meets the pixel clock. Built with -DSYNTH through fpga/fpga_top.v, which is the same entropy path the fpga workflow builds: nextpnr-ice40 refuses a design containing a combinational loop, and an FPGA cannot host a usable ring oscillator TRNG out of routed LUTs anyway, so entropy arrives on ENT_IN. This run uses no PCF and its own board wrapper, so it is not a substitute for the fpga workflow, which builds Tiny Tapeout's tt_fpga_top and their FabricFox pin assignment. achieved_mhz is the register to register frequency, which is what decides whether the design runs. clk_to_pad_ns is the unconstrained clock to output pad delay, which exceeds one pixel period here; on a real board that path needs pin constraints and probably an output register stage."
 }

@@ -16,13 +16,17 @@
  *    control switches, the entropy and cutoff inputs, and the three status
  *    outputs.
  *
- * 2. The ring oscillators. src/ring_osc.v is a deliberate combinational loop.
- *    Yosys' ice40 flow will not synthesise one, so the tile is instantiated with
- *    SIM_ENTROPY = 1, which replaces the oscillators with the ENT_IN pin. On an
- *    FPGA that is the correct choice anyway: an FPGA has no way to build a usable
- *    ring oscillator TRNG out of routed LUTs, so entropy has to come from
- *    outside. Feed ent_in from a noisy source, or from a free running counter
- *    sampled by an unrelated clock domain, and be aware that neither is a TRNG.
+ * 2. Board pin names. The tile speaks ui_in/uio_in; a board speaks switches,
+ *    a VGA PMOD and three status LEDs.
+ *
+ * What this wrapper deliberately does NOT do is choose the entropy source. It
+ * used to pass SIM_ENTROPY = 1 to drop the ring oscillators, which meant the
+ * local flow was building something the `fpga` workflow does not. Both now go
+ * through the same `SYNTH branch in src/entropy_source.v, which tt_fpga.py
+ * defines and scripts/run_fpga.sh defines too, so a local pass and a CI pass are
+ * about the same netlist. See src/entropy_source.v for why nextpnr-ice40 leaves
+ * no other option, and why an external entropy pin is the right answer on an
+ * FPGA regardless.
  *
  * This wrapper is for FPGA bring-up and for the pattern generators. It is not
  * part of the ASIC deliverable and is not listed in info.yaml.
@@ -54,9 +58,7 @@ module fpga_top (
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
 
-  tt_um_danieltyukov_vga_trng #(
-      .SIM_ENTROPY(1)
-  ) u_tile (
+  tt_um_danieltyukov_vga_trng u_tile (
       .ui_in  (sw),
       .uo_out (vga),
       .uio_in ({3'b000, apt_cut, rct_cut, ent_in}),
