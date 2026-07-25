@@ -71,21 +71,31 @@ LibreLane 3.0.0.dev44, OpenSTA 3.1.0 and z3 4.8.12.
 
 ## The targets
 
-| target | what it does | roughly |
+| target | what it does | measured |
 | --- | --- | --- |
-| `make test` | the cocotb regression, 11 tests | 8 min |
+| `make test` | the cocotb regression, 11 tests | 16 min |
 | `make lint` | `verilator --lint-only -Wall`, zero warnings expected | seconds |
 | `make ring` | plain Icarus structural testbench for the oscillator path | seconds |
-| `make formal` | two SymbiYosys proofs plus a mutation check | 1 min |
-| `make synth` | Yosys area report against the real IHP Liberty | 2 min |
-| `make check` | all five of the above | 12 min |
-| `make capture` | 64 further model verified frames for the animations | 17 min |
+| `make formal` | two SymbiYosys proofs plus a mutation check | 20 s |
+| `make synth` | Yosys area report against the real IHP Liberty | 16 s |
+| `make check` | all five of the above | 17 min |
+| `make capture` | 64 further model verified frames for the animations | 27 min |
 | `make images` | regenerate every PNG and GIF in `docs/img` | 1 min |
-| `make sta` | OpenSTA at three corners, per corner remapped netlists | 3 min |
+| `make sta` | OpenSTA at three corners, per corner remapped netlists | 25 s |
 | `make harden` | LibreLane to GDS, signoff extract, layout renders | 25 min |
 | `make gl` | the regression again on the hardened netlist | 15 min |
-| `make fpga` | Yosys, nextpnr-ice40, icepack, icetime for an ICE40UP5K | 1 min |
+| `make fpga` | Yosys, nextpnr-ice40, icepack, icetime for an ICE40UP5K | 7 s |
 | `make ring-freq` | ring frequency from the Liberty delay tables | seconds |
+
+Those are wall clock on a 22 core desktop that was busy with other work at the
+time, so treat them as upper bounds rather than a benchmark. The simulation is
+single threaded, so the number that moves them is single core speed, not core
+count. `make harden` and `make gl` are the two figures taken from the runs
+recorded in `docs/hardening/` and the CI `gl_test` job rather than timed here.
+
+Inside `make test` almost all of the time is three tests: `test_golden_frames`
+562 s, `test_vga_timing` 205 s and `test_pattern_switch_mid_frame` 111 s, out of
+936 s total. Everything else in the suite finishes in under 10 seconds.
 
 ## Running the tests
 
