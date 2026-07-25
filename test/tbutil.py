@@ -108,13 +108,22 @@ async def align_to_frame(dut, model, **kw):
             await bulk_step(dut, model, M.H_TOTAL, **kw)
 
 
-async def capture_frame(dut, model, sel, check=True, max_report=12, **kw):
+async def capture_frame(
+    dut, model, sel, check=True, max_report=12, ext_fn=None, rct_sel=3, apt_sel=3, **kw
+):
     """Capture one 640x480 frame starting at pixel (0, 0).
 
     Returns (framebuffer, mismatches). The framebuffer is a bytearray of
     640*480 packed 6 bit colours, r<<4 | g<<2 | b, taken from the DUT pins.
     When check is true every active pixel and a sample of the blanking is
     compared against the model.
+
+    ext_fn, if given, is called once per clock during the first 400 clocks of
+    each vertical blanking line and must return the entropy bit to drive on
+    uio_in[0]. That is where entropy gets stirred into the conditioner for the
+    TRNG driven switching capture: the reselect happens at the frame boundary,
+    so the bits have to arrive during vertical blanking to matter, and driving
+    them there costs nothing in the visible region.
     """
     assert model.x == 0 and model.y == 0, "capture_frame must start at (0, 0)"
     fb = bytearray(M.H_ACTIVE * M.V_ACTIVE)
@@ -144,7 +153,16 @@ async def capture_frame(dut, model, sel, check=True, max_report=12, **kw):
             await bulk_step(dut, model, M.H_TOTAL - M.H_ACTIVE - 160, **kw)
         else:
             # vertical blanking: one check per line, rest in bulk
-            await bulk_step(dut, model, 400, **kw)
+            if ext_fn is None:
+                await bulk_step(dut, model, 400, **kw)
+            else:
+                for _ in range(400):
+                    bit = ext_fn()
+                    dut.uio_in.value = uio(ent_bit=bit, rct_sel=rct_sel, apt_sel=apt_sel)
+                    await step(dut, model, ext_bit=bit, **kw)
+                # hand the pin back to 0 so the bulk steps below, which tell the
+                # model ext_bit is 0, stay in lockstep with the DUT
+                dut.uio_in.value = uio(ent_bit=0, rct_sel=rct_sel, apt_sel=apt_sel)
             if check:
                 got = int(dut.uo_out.value)
                 exp = model.uo_out(sel)
@@ -164,9 +182,9 @@ def out_dir(name):
     return d
 
 
-def write_frame(name, fb, meta):
+def write_frame(name, fb, meta, subdir="frames"):
     """Store one frame as a tiny header plus raw 6 bit colour bytes."""
-    d = out_dir("frames")
+    d = out_dir(subdir)
     with open(d / f"{name}.bin", "wb") as f:
         f.write(struct.pack("<HH", M.H_ACTIVE, M.V_ACTIVE))
         f.write(bytes(fb))

@@ -73,7 +73,17 @@ endif
 # --------------------------------------------------------------------------
 # Extra targets. These deliberately do not depend on cocotb's own rules.
 # --------------------------------------------------------------------------
-.PHONY: lint ring synth images
+.PHONY: lint ring synth images capture
+
+# Frame sequence capture for the animated images. Slow on purpose: 64 frames of
+# 420000 pixel clocks each. Runs the same lockstep model checks as the
+# regression, so it is a test too, just not one worth paying for on every run.
+capture:
+	$(MAKE) -B COCOTB_TEST_MODULES=capture SIM_BUILD=sim_build/capture \
+		COCOTB_RESULTS_FILE=results_capture.xml
+	@! grep -q "<failure" results_capture.xml || { echo "CAPTURE FAILURES"; exit 1; }
+	@echo "capture: all frames verified against the model"
+
 
 lint:
 	verilator --lint-only -Wall \
