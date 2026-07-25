@@ -75,9 +75,10 @@ module pat_yours (
 
 The contract:
 
-- **Combinational, no clock.** `rgb` must be valid for the `(pix_x, pix_y)` on
-  the same clock. There is one pipeline stage in the whole design, and it is the
-  output register in the harness, not here.
+- **Combinational, no clock.** `rgb` must be valid for the `(pix_x, pix_y)` it is
+  given, on that same clock. There is no pipeline stage between a pattern and the
+  pins: `pattern_mux` selects combinationally, the top level gates blanking
+  combinationally, and `uo_out` is a continuous assignment.
 - **`pix_x` and `pix_y` count through blanking**, so they reach 799 and 524. Do
   not assume they are inside the visible window. You may output anything outside
   it: the top level forces black during blanking, and it has to, or a monitor
@@ -178,7 +179,7 @@ pat_bars       403 um2    0 flops
 pat_xor        434 um2    0 flops
 pat_ripple     953 um2    0 flops
 pat_plasma    1310 um2    0 flops    including a 132 um2 folded quarter wave table
-pat_ball      3346 um2   24 flops
+pat_ball      3346 um2   22 flops   24 bits declared, two fold away in mapping
 pat_rule30    4209 um2   40 flops
 ```
 

@@ -616,27 +616,31 @@ runs against both. [`test/test_gl.py`](test/test_gl.py) asserts that state inste
 of assuming it: every one of the 12 chain nets, both settled ring outputs, the
 synchroniser output that feeds the sampler, and `uio_oe` through the tie cells.
 
-The result, on the netlist the `gds` job produced:
+The result, on the netlist the `gds` job produced, from
+[run 30177269561](https://github.com/danieltyukov/tt-ihp-vga-trng/actions/runs/30177269561):
 
 ```
 test_gl_tie_cells                 PASS
 test_gl_rings_are_broken          PASS
 test_reset                        PASS
-test_vga_timing                   PASS      216 s
-test_golden_frames                PASS      513 s   8 frames, 2 457 600 pixels
-test_pattern_switch_mid_frame     PASS       95 s
+test_vga_timing                   PASS       99 s
+test_golden_frames                PASS      241 s   8 frames, 2 457 600 pixels
+test_pattern_switch_mid_frame     PASS       57 s
 test_von_neumann                  PASS
 test_lfsr_sequence                PASS
-test_lfsr_period                  PASS       13 s   all 65 536 LFSR states
+test_lfsr_period                  PASS        6 s   all 65 536 LFSR states
 test_health_rct / apt / sticky    PASS
-test_trng_statistics              PASS       47 s   262 144 output bits
+test_trng_statistics              PASS       22 s   262 144 output bits
                                   ------
-TESTS=13 PASS=13 FAIL=0                     891 s
+TESTS=13 PASS=13 FAIL=0                     428 s
 ```
+
+Wall clock varies with the runner: the same suite has taken 428 s and 891 s on
+different `ubuntu-24.04` runners. What does not vary is the pass count.
 
 Nothing was reduced for the gate level run: the same 11 tests, the same 8 golden
 frames, the same 65 536 state LFSR walk and the same 262 144 sample statistics run
-against the netlist, in about 15 minutes. The only difference is that
+against the netlist. The only difference is that
 `test/tbutil.py` reads the four internal probes through the flat netlist names
 (`\rnd_state[0] `) instead of through the RTL hierarchy, and the frames are not
 written to `test/output/`, because every image in `docs/img` comes from the RTL
