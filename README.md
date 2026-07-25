@@ -356,7 +356,7 @@ measurement. Reports are committed in [docs/synth/](docs/synth/) and
 
 `make harden` runs LibreLane **3.0.0.dev44** with `pdk: ihp-sg13g2`, exactly what
 `TinyTapeout/tt-gds-action@ttihp26a` pins, so it is the shuttle flow rather than
-an approximation of it. It differs from the `gds` job in two ways, both
+an approximation of it. It differs from the `gds` job in three ways, all
 deliberate: it fixes the clock at the 39.722 ns the design actually needs instead
 of the template's 20 ns, it constrains the boundary from a real SDC instead of
 LibreLane's generic fallback, and it runs KLayout DRC, which
