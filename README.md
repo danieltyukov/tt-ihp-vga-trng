@@ -564,7 +564,7 @@ covered by simulation only.
 | `test.yaml` | lint, ring, cocotb, synth | **passing**, badge above |
 | `gds.yaml` | gds, precheck, gl_test, viewer | **passing**, badge above |
 | `docs.yaml` | datasheet render | **passing**, badge above |
-| `fpga.yaml` | ice40 bitstream | **passing**, badge above. Enabled, which the template leaves off |
+| `fpga.yaml` | ice40 bitstream | **passing**, badge above. The template ships this one disabled |
 
 All of these run on plain `ubuntu-24.04` runners with no secrets and no Tiny
 Tapeout API access.
