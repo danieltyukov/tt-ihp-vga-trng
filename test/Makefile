@@ -25,6 +25,8 @@ PROJECT_SOURCES = \
 	pat_stars.v \
 	pat_rule30.v \
 	trng.v \
+	ring_inv.v \
+	ring_gate.v \
 	ring_osc.v \
 	entropy_source.v \
 	von_neumann.v \
@@ -82,7 +84,8 @@ lint:
 ring: sim_build/ring
 	./sim_build/ring
 
-RING_SOURCES = $(SRC_DIR)/ring_osc.v $(SRC_DIR)/entropy_source.v
+RING_SOURCES = $(SRC_DIR)/ring_inv.v $(SRC_DIR)/ring_gate.v \
+               $(SRC_DIR)/ring_osc.v $(SRC_DIR)/entropy_source.v
 
 sim_build/ring: tb_ring.v $(RING_SOURCES)
 	@mkdir -p sim_build

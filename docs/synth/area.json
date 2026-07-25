@@ -1,35 +1,35 @@
 {
   "top": {
-    "cell_count": 1268,
-    "area_um2": 17894.86,
+    "cell_count": 1288,
+    "area_um2": 18040.01,
     "flop_count": 142,
     "cells": {
-      "sg13g2_nand2_1": 132,
+      "sg13g2_nand2_1": 137,
       "sg13g2_inv_1": 91,
-      "sg13g2_a21o_1": 15,
-      "sg13g2_a21oi_1": 199,
-      "sg13g2_a221oi_1": 12,
+      "sg13g2_a21o_1": 22,
+      "sg13g2_a21oi_1": 211,
+      "sg13g2_a221oi_1": 11,
       "sg13g2_a22oi_1": 15,
-      "sg13g2_and2_1": 36,
-      "sg13g2_and3_1": 16,
+      "sg13g2_and2_1": 34,
+      "sg13g2_and3_1": 19,
       "sg13g2_and4_1": 2,
       "sg13g2_dfrbpq_1": 142,
       "sg13g2_mux2_1": 5,
       "sg13g2_mux4_1": 8,
       "sg13g2_nand2b_1": 42,
-      "sg13g2_nand3_1": 24,
-      "sg13g2_nand3b_1": 3,
-      "sg13g2_nand4_1": 13,
-      "sg13g2_nor2_1": 112,
-      "sg13g2_nor2b_1": 38,
-      "sg13g2_nor3_1": 34,
-      "sg13g2_nor4_1": 11,
-      "sg13g2_o21ai_1": 123,
-      "sg13g2_or2_1": 20,
-      "sg13g2_or3_1": 2,
-      "sg13g2_or4_1": 2,
-      "sg13g2_xnor2_1": 115,
-      "sg13g2_xor2_1": 56
+      "sg13g2_nand3_1": 32,
+      "sg13g2_nand3b_1": 2,
+      "sg13g2_nand4_1": 15,
+      "sg13g2_nor2_1": 107,
+      "sg13g2_nor2b_1": 28,
+      "sg13g2_nor3_1": 39,
+      "sg13g2_nor4_1": 13,
+      "sg13g2_o21ai_1": 132,
+      "sg13g2_or2_1": 18,
+      "sg13g2_or3_1": 5,
+      "sg13g2_or4_1": 1,
+      "sg13g2_xnor2_1": 104,
+      "sg13g2_xor2_1": 53
     }
   },
   "modules": {
@@ -65,7 +65,7 @@
     },
     "pat_plasma": {
       "cell_count": 115,
-      "area_um2": 1308.18,
+      "area_um2": 1310.0,
       "flop_count": 0
     },
     "pat_ball": {
@@ -79,14 +79,24 @@
       "flop_count": 0
     },
     "pat_rule30": {
-      "cell_count": 223,
-      "area_um2": 4053.33,
+      "cell_count": 265,
+      "area_um2": 4209.37,
       "flop_count": 40
     },
     "pattern_mux": {
-      "cell_count": 862,
-      "area_um2": 11063.0,
+      "cell_count": 861,
+      "area_um2": 10950.55,
       "flop_count": 62
+    },
+    "ring_inv": {
+      "cell_count": 1,
+      "area_um2": 5.44,
+      "flop_count": 0
+    },
+    "ring_gate": {
+      "cell_count": 1,
+      "area_um2": 7.26,
+      "flop_count": 0
     },
     "ring_osc": {
       "cell_count": 5,
@@ -114,8 +124,8 @@
       "flop_count": 24
     },
     "trng": {
-      "cell_count": 245,
-      "area_um2": 4183.97,
+      "cell_count": 246,
+      "area_um2": 4191.23,
       "flop_count": 49
     }
   },
@@ -125,8 +135,8 @@
     "tile_area_um2": 18036.0,
     "target_density": 0.6,
     "usable_area_per_tile_um2": 10821.6,
-    "tiles_required": 1.654,
-    "density_1x1": 0.9922,
-    "density_1x2": 0.4961
+    "tiles_required": 1.667,
+    "density_1x1": 1.0002,
+    "density_1x2": 0.5001
   }
 }

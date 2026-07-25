@@ -36,7 +36,7 @@ MODULES=(
   pat_xor pat_bars pat_sierp pat_ripple sine_q pat_plasma
   pat_ball pat_stars pat_rule30
   pattern_mux
-  ring_osc entropy_source von_neumann lfsr_whitener health_monitor trng
+  ring_inv ring_gate ring_osc entropy_source von_neumann lfsr_whitener health_monitor trng
 )
 
 echo "== flattened top level =="

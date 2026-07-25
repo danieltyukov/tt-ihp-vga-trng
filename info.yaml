@@ -36,6 +36,8 @@ project:
     - "pat_stars.v"
     - "pat_rule30.v"
     - "trng.v"
+    - "ring_inv.v"
+    - "ring_gate.v"
     - "ring_osc.v"
     - "entropy_source.v"
     - "von_neumann.v"

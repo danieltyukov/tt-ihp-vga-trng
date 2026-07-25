@@ -1,5 +1,5 @@
 
-24. Printing statistics.
+26. Printing statistics.
 
 === $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010 ===
 
@@ -59,51 +59,51 @@
 
 === tt_um_danieltyukov_vga_trng ===
 
-   Number of wires:               1141
-   Number of wire bits:           1304
+   Number of wires:               1161
+   Number of wire bits:           1324
    Number of public wires:          36
    Number of public wire bits:     199
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:               1268
+   Number of cells:               1288
      $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010      1
      $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
      $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010      6
      $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
-     sg13g2_a21o_1                  15
-     sg13g2_a21oi_1                199
-     sg13g2_a221oi_1                12
+     sg13g2_a21o_1                  22
+     sg13g2_a21oi_1                211
+     sg13g2_a221oi_1                11
      sg13g2_a22oi_1                 15
-     sg13g2_and2_1                  36
-     sg13g2_and3_1                  16
+     sg13g2_and2_1                  34
+     sg13g2_and3_1                  19
      sg13g2_and4_1                   2
      sg13g2_dfrbpq_1               142
      sg13g2_inv_1                   81
      sg13g2_mux2_1                   5
      sg13g2_mux4_1                   8
-     sg13g2_nand2_1                130
+     sg13g2_nand2_1                135
      sg13g2_nand2b_1                42
-     sg13g2_nand3_1                 24
-     sg13g2_nand3b_1                 3
-     sg13g2_nand4_1                 13
-     sg13g2_nor2_1                 112
-     sg13g2_nor2b_1                 38
-     sg13g2_nor3_1                  34
-     sg13g2_nor4_1                  11
-     sg13g2_o21ai_1                123
-     sg13g2_or2_1                   20
-     sg13g2_or3_1                    2
-     sg13g2_or4_1                    2
-     sg13g2_xnor2_1                115
-     sg13g2_xor2_1                  56
+     sg13g2_nand3_1                 32
+     sg13g2_nand3b_1                 2
+     sg13g2_nand4_1                 15
+     sg13g2_nor2_1                 107
+     sg13g2_nor2b_1                 28
+     sg13g2_nor3_1                  39
+     sg13g2_nor4_1                  13
+     sg13g2_o21ai_1                132
+     sg13g2_or2_1                   18
+     sg13g2_or3_1                    5
+     sg13g2_or4_1                    1
+     sg13g2_xnor2_1                104
+     sg13g2_xor2_1                  53
 
    Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
    Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
    Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010 is unknown!
    Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010 is unknown!
 
-   Chip area for module '\tt_um_danieltyukov_vga_trng': 17825.913000
+   Chip area for module '\tt_um_danieltyukov_vga_trng': 17971.065000
 
 === design hierarchy ===
 
@@ -113,40 +113,40 @@
      $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010      6
      $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
 
-   Number of wires:               1167
-   Number of wire bits:           1330
+   Number of wires:               1187
+   Number of wire bits:           1350
    Number of public wires:          62
    Number of public wire bits:     225
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:               1268
-     sg13g2_a21o_1                  15
-     sg13g2_a21oi_1                199
-     sg13g2_a221oi_1                12
+   Number of cells:               1288
+     sg13g2_a21o_1                  22
+     sg13g2_a21oi_1                211
+     sg13g2_a221oi_1                11
      sg13g2_a22oi_1                 15
-     sg13g2_and2_1                  36
-     sg13g2_and3_1                  16
+     sg13g2_and2_1                  34
+     sg13g2_and3_1                  19
      sg13g2_and4_1                   2
      sg13g2_dfrbpq_1               142
      sg13g2_inv_1                   91
      sg13g2_mux2_1                   5
      sg13g2_mux4_1                   8
-     sg13g2_nand2_1                132
+     sg13g2_nand2_1                137
      sg13g2_nand2b_1                42
-     sg13g2_nand3_1                 24
-     sg13g2_nand3b_1                 3
-     sg13g2_nand4_1                 13
-     sg13g2_nor2_1                 112
-     sg13g2_nor2b_1                 38
-     sg13g2_nor3_1                  34
-     sg13g2_nor4_1                  11
-     sg13g2_o21ai_1                123
-     sg13g2_or2_1                   20
-     sg13g2_or3_1                    2
-     sg13g2_or4_1                    2
-     sg13g2_xnor2_1                115
-     sg13g2_xor2_1                  56
+     sg13g2_nand3_1                 32
+     sg13g2_nand3b_1                 2
+     sg13g2_nand4_1                 15
+     sg13g2_nor2_1                 107
+     sg13g2_nor2b_1                 28
+     sg13g2_nor3_1                  39
+     sg13g2_nor4_1                  13
+     sg13g2_o21ai_1                132
+     sg13g2_or2_1                   18
+     sg13g2_or3_1                    5
+     sg13g2_or4_1                    1
+     sg13g2_xnor2_1                104
+     sg13g2_xor2_1                  53
 
-   Chip area for top module '\tt_um_danieltyukov_vga_trng': 17894.860200
+   Chip area for top module '\tt_um_danieltyukov_vga_trng': 18040.012200
 

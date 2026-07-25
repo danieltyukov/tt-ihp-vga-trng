@@ -87,6 +87,7 @@ module pattern_mux (
       .line_end(line_end),
       .frame_end(frame_end),
       .pix_x(pix_x),
+      .pix_y(pix_y),
       .frame(frame),
       .rgb(rgb7)
   );
