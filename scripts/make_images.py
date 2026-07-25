@@ -15,6 +15,7 @@ Inputs, all produced by the simulation and synthesis steps:
     test/output/debias.json     bias before and after von Neumann   (make test)
     test/output/timing.json     measured VGA intervals              (make test)
     docs/synth/area.json        per module cell counts and areas    (make synth)
+    docs/hardening/summary.json post route area and signoff           (make harden)
 
 Run with: make images
 """
@@ -327,7 +328,7 @@ def plot_debias(deb):
 # ---------------------------------------------------------------------------
 # synthesis area chart
 # ---------------------------------------------------------------------------
-def plot_area(area):
+def plot_area(area, harden=None):
     tile = area["tile"]
     mods = area["modules"]
 
@@ -368,52 +369,59 @@ def plot_area(area):
         color=INK,
     )
 
-    # tile budget panel
-    total = area["top"]["area_um2"]
+    # tile budget panel: what the design needs against what a tile provides
+    synth = area["top"]["area_um2"]
     tile_area = tile["tile_area_um2"]
-    budget = tile_area * tile["target_density"]
-    ax2.bar(["1x1", "1x2"], [tile_area, 2 * tile_area], color=GRID, width=0.55,
-            label="raw tile area")
-    ax2.bar(["1x1", "1x2"], [budget, 2 * budget], color="#b7c4d4", width=0.55,
-            label=f"placeable at {tile['target_density']*100:.0f}% density")
-    ax2.axhline(total, color=BAD, linewidth=2)
-    ax2.annotate(
-        f"this design, {total:.0f} um2",
-        xy=(-0.42, total),
-        xytext=(0, 6),
-        textcoords="offset points",
-        ha="left",
-        fontsize=9.5,
-        color=BAD,
+
+    bars = [("post\nsynthesis", synth, ACCENT)]
+    subtitle = f"{area['top']['cell_count']} cells, {area['top']['flop_count']} flops"
+    if harden:
+        route = harden["instance_area_real_um2"]
+        bars.append(("post\nroute", route, ACCENT2))
+        subtitle += f"\npost route {harden['instance_count_real']} cells, DRC/LVS clean"
+    labels = [b[0] for b in bars]
+    vals = [b[1] for b in bars]
+    ax2.bar(labels, vals, color=[b[2] for b in bars], width=0.5)
+    for x, v in enumerate(vals):
+        ax2.annotate(
+            f"{v:.0f}",
+            xy=(x, v),
+            xytext=(0, 5),
+            textcoords="offset points",
+            ha="center",
+            fontsize=9.5,
+            color=INK,
+        )
+
+    # the two tile footprints as reference lines, named in the legend rather
+    # than annotated in place: the panel is too narrow for the text to fit.
+    ax2.axhline(tile_area, color=BAD, linewidth=1.8, linestyle="--")
+    ax2.axhline(2 * tile_area, color=GOOD, linewidth=1.8, linestyle="--")
+    ax2.legend(
+        [
+            plt.Line2D([], [], color=BAD, lw=1.8, ls="--"),
+            plt.Line2D([], [], color=GOOD, lw=1.8, ls="--"),
+        ],
+        [f"1x1 tile, {tile_area:.0f} um2", f"1x2 tile, {2 * tile_area:.0f} um2"],
+        fontsize=8.5,
+        frameon=False,
+        loc="upper left",
     )
-    ax2.annotate(
-        f"{tile['density_1x1']*100:.1f}%",
-        xy=(0, total),
-        xytext=(0, -18),
-        textcoords="offset points",
-        ha="center",
-        fontsize=10,
-        color=BAD,
-        weight="bold",
-    )
-    ax2.annotate(
-        f"{tile['density_1x2']*100:.1f}%",
-        xy=(1, total),
-        xytext=(0, -18),
-        textcoords="offset points",
-        ha="center",
-        fontsize=10,
-        color=GOOD,
-        weight="bold",
-    )
-    ax2.set_ylabel("um2")
-    ax2.set_title(
-        f"Tile budget\n{area['top']['cell_count']} cells, "
-        f"{area['top']['flop_count']} flops, {total:.0f} um2",
-        fontsize=11,
-        color=INK,
-    )
-    ax2.legend(fontsize=8, frameon=False, loc="upper left")
+    if harden:
+        ax2.annotate(
+            f"post route cells are\n"
+            f"{harden['density_real_over_1x1'] * 100:.0f}% of a 1x1 tile\n"
+            f"{harden['density_real_over_1x2'] * 100:.0f}% of a 1x2 tile",
+            xy=(0.5, tile_area),
+            xytext=(0, -46),
+            textcoords="offset points",
+            ha="center",
+            fontsize=9,
+            color=INK,
+        )
+    ax2.set_ylim(0, 2 * tile_area * 1.18)
+    ax2.set_ylabel("cell area, um2")
+    ax2.set_title("Area against the tile footprint\n" + subtitle, fontsize=10.5, color=INK)
 
     fig.tight_layout()
     path = IMG / "synth_area.png"
@@ -459,10 +467,19 @@ def main():
     for p in made[-4:]:
         print(f"  {p.name}")
 
-    print("synthesis area chart:")
+    print("synthesis and hardening area chart:")
     area = load_json(SYNTH / "area.json", "make synth")
-    made.append(plot_area(area))
+    hard_path = ROOT / "docs" / "hardening" / "summary.json"
+    harden = json.loads(hard_path.read_text()) if hard_path.exists() else None
+    if harden is None:
+        print("  note: no docs/hardening/summary.json, run `make harden` for the")
+        print("        post route bar. Falling back to post synthesis only.")
+    made.append(plot_area(area, harden))
     print(f"  {made[-1].name}")
+    layout = IMG / "layout.png"
+    if layout.exists():
+        made.append(layout)
+        print(f"  {layout.name} (rendered by scripts/harden.sh)")
 
     total_kb = sum(p.stat().st_size for p in made) / 1024
     print(f"\n{len(made)} images written to docs/img ({total_kb:.0f} kB)")

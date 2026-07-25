@@ -14,7 +14,8 @@ of the cocotb regression. Raw reports are in [synth/](synth/).
 4. [The entropy pipeline](#4-the-entropy-pipeline)
 5. [Health tests and the SP 800-90B rationale](#5-health-tests-and-the-sp-800-90b-rationale)
 6. [Verification plan](#6-verification-plan)
-7. [Known limitations](#7-known-limitations)
+7. [Physical implementation](#7-physical-implementation)
+8. [Known limitations](#8-known-limitations)
 
 ---
 
@@ -22,32 +23,57 @@ of the cocotb regression. Raw reports are in [synth/](synth/).
 
 ### The measurement
 
-```
-1288 standard cells
- 142 flip-flops (all sg13g2_dfrbpq_1, no latches)
-18040 um2 of mapped standard cell area
-```
+Three points in the flow, all on the real `sg13g2` library:
 
-A Tiny Tapeout tile on the IHP shuttle is about 167 x 108 um, so 18036 um2. Two
-numbers follow from that:
+| stage | cell area | cells | tool |
+| --- | --- | --- | --- |
+| post synthesis | 18040 um2 | 1288, 142 flip-flops | Yosys 0.33 `stat -liberty` |
+| **post route, real cells** | **25940.5 um2** | **1767** | LibreLane 3.0.0.dev44 |
+| post route, plus fill | 33430.3 um2 | 2965 instances | same run |
 
-| tiles | tile area | required placement density |
-| --- | --- | --- |
-| 1x1 | 18036 um2 | **100.0%** |
-| 1x2 | 36072 um2 | **50.0%** |
+A Tiny Tapeout tile on the IHP shuttle is about 167 x 108 um, so 18036 um2. The
+post route figure is the one that decides the tile count:
 
-`src/config.json` leaves `PL_TARGET_DENSITY_PCT` at the Tiny Tapeout default of
-60. A design needing 100% density does not place, let alone route: there would be
-zero space for filler, for the power distribution network, or for the detour room
-the global router needs. 1x1 is not a tight fit, it is arithmetically impossible.
-At the 60% target the design needs 1.67 tiles, so `tiles: "1x2"`.
+| tiles | die area | post route real cells as a fraction | verdict |
+| --- | --- | --- | --- |
+| 1x1 | 18036 um2 | **143.8%** | more cell area than die: impossible |
+| 1x2 | 36072 um2 | **71.9%** | hardened, routed, DRC and LVS clean |
+
+That is not a marginal call. There is half again as much silicon in the cells as
+there is tile to put them in, before a single wire is routed. `tiles: "1x2"`.
+
+The post synthesis number would have suggested 1x1 needs exactly 100.0% density,
+which is already impossible (no room for filler, the power distribution network,
+or router detours, and `src/config.json` targets 60%). But it understates the
+problem by 44 percentage points, and it is worth understanding why.
+
+### What synthesis does not tell you
+
+7900 um2 appears between synthesis and route, 44% on top of the synthesis
+estimate:
+
+| class | area | count | what it is |
+| --- | --- | --- | --- |
+| multi-input combinational | 11403.5 um2 | 1161 | the logic |
+| sequential | 7076.2 um2 | 142 | the flip-flops |
+| **timing repair buffers** | **5846.0 um2** | **338**, 233 of them hold buffers | inserted after placement |
+| clock buffers and inverters | 1246.5 um2 | 65 | the clock tree, which synthesis does not build |
+| inverters and buffers | 368.3 um2 | 61 | drive strength fixes |
+| fill | 7489.8 um2 | 1198 | occupies whatever is left |
+
+Hold fixing alone is 5846 um2, 23% of the real cell area, and none of it exists
+until after placement. Anyone sizing a Tiny Tapeout tile from a `yosys stat`
+number is going to be roughly 40% optimistic. That is the single most useful
+thing this project measured.
 
 ![Per submodule area and the tile budget](img/synth_area.png)
 
 ### What optimising would have to remove
 
-Working from the measured per-module numbers, reaching 60% density on a single
-tile means getting to 10822 um2, which is 7218 um2 less than the design is now.
+Working from the post synthesis per-module numbers, reaching 60% density on a
+single tile means getting to 10822 um2, which is 7218 um2 less than the design is
+now. (Post route the target is harsher still, because CTS and hold fixing add
+their 7900 um2 on top of whatever synthesis produces.)
 The only two blocks big enough to matter are the two that hold state:
 
 ```
@@ -57,10 +83,15 @@ pat_ball     3346 um2   22 flops
              7555 um2
 ```
 
-Deleting both leaves 10485 um2, which is 58.1% density on a 1x1 tile. That clears
-the 60% target by 337 um2, roughly seven flip-flops' worth of slack, and the price
-is both of the animated patterns, the collision behaviour, and the only genuinely
-iterated pattern in the design. Not a trade worth making.
+Deleting both leaves 10485 um2 post synthesis, which is 58.1% density on a 1x1
+tile: it clears the 60% target by 337 um2, roughly seven flip-flops' worth of
+slack. And that is before CTS and hold fixing add their share, which measured on
+the full design was 44% on top of synthesis. Applied to 10485 um2 that is about
+15100 um2, or 84% of a single tile, which does not place either.
+
+So the price of a 1x1 tile is both animated patterns, the collision behaviour,
+and the only genuinely iterated pattern in the design, in exchange for a fit that
+the post route measurement says would still not work. Not a trade worth making.
 
 Smaller savings were considered and rejected because none of them changes the
 conclusion:
@@ -576,11 +607,139 @@ is a separate `make -C test capture` target for that reason, about 15 minutes fo
 
 ---
 
-## 7. Known limitations
+## 7. Physical implementation
+
+`make harden` runs LibreLane **3.0.0.dev44** with `pdk: ihp-sg13g2`, which is
+exactly the version and PDK `TinyTapeout/tt-gds-action@ttihp26a` pins. So this is
+the shuttle hardening flow, not a stand-in for it. What it is not is a shuttle
+submission: Tiny Tapeout's precheck and their harness integration still need
+their infrastructure, and this tile has passed neither.
+
+![Routed layout](img/layout.png)
+
+The die is fixed at 167 x 216 um in `hardening/config.json`, exactly the 1x2 tile
+footprint `info.yaml` declares. Fixing it rather than letting the floorplanner
+choose is the point: it makes the run answer "does it fit in the area I claimed"
+instead of "what area would it like".
+
+### Signoff
+
+```
+route DRC 0    magic DRC 0    klayout DRC 0    LVS 0
+antenna 0 nets, 0 pins        power grid 0     unmapped cells 0
+max slew 0     max cap 0      setup TNS 0      hold TNS 0
+
+setup worst slack    17.5583 ns   at a 39.722 ns period
+hold worst slack      0.1168 ns
+clock skew            0.0327 ns   network latency 0.68 to 0.72 ns
+power                 0.3440 mW
+wirelength              38024 um
+```
+
+| corner | setup worst slack | hold worst slack |
+| --- | --- | --- |
+| slow 1.08 V 125 C | +17.5583 ns | +0.6219 ns |
+| typ 1.20 V 25 C | +18.3220 ns | +0.3024 ns |
+| fast 1.32 V -40 C | +18.7628 ns | +0.1168 ns |
+
+### The SDC is real, which is the only reason those numbers mean anything
+
+LibreLane warns `'PNR_SDC_FILE' is not defined. Using generic fallback SDC` when
+you do not give it constraints, and slack measured against a fallback is not a
+claim worth making. [`hardening/constraints.sdc`](../hardening/constraints.sdc)
+sets both `PNR_SDC_FILE` and `SIGNOFF_SDC_FILE`, and the warning is gone from the
+run log. Every number in it is justified in place:
+
+- 39.7220 ns period, which is the `clock_hz` in `info.yaml`.
+- 0.25 ns clock uncertainty, 0.63% of the period. The harness distributes one
+  clock to every user tile, so the clock arriving here has picked up jitter and
+  skew this tile does not control.
+- 25% of the period budgeted at each boundary, in and out. The harness input and
+  output multiplexers are between this tile and the pads. Assuming zero external
+  delay would be easier and less true; there is enough margin to afford the
+  honest version.
+- `sg13g2_inv_1` drive and load at the boundary rather than an ideal source and a
+  zero load.
+
+### Post synthesis versus post route timing
+
+`make sta` reports a slow corner Fmax of 169 MHz; the hardened run has 17.56 ns
+of slack at 39.722 ns. Both are in the repo because they measure different
+things. Post synthesis STA estimates interconnect from the liberty wireload
+model and has no clock tree and no hold buffers. The hardened number has
+extracted parasitics, a real 65 cell clock tree, and 233 hold buffers. Quoting
+only the flattering one would be the easy mistake.
+
+### The one violation that is not clean
+
+`design__max_fanout_violation__count` is **1**, at every corner. The clock tree
+root buffer `clkbuf_0_clk/X` drives 16 sinks against the library's
+`default_max_fanout` of 8 (from the `sg13g2` liberty header, not from this
+design's SDC, which sets 10).
+
+Two attempts to remove it, both recorded because negative results are results:
+
+1. `CTS_SINK_CLUSTERING_SIZE: 40`, up from OpenROAD's default of 20, on the
+   theory that larger sink clusters mean fewer level one buffers for the root to
+   drive. **Changed nothing.** Not one metric moved: same fanout violation, same
+   51 clock buffers, same 1170.29 um2 of them, same slack to four decimals.
+2. `MAX_FANOUT_CONSTRAINT: 8` plus `CTS_BALANCE_LEVELS: true`, to make the repair
+   steps aware of the real limit and let CTS add a level. **Also changed
+   nothing.** Identical metrics again, to four decimal places.
+
+Two independent knobs producing byte identical results is itself informative:
+neither reaches OpenROAD's clock tree synthesis in a way that alters the root
+buffer for a design this small, or the tree is already what CTS considers optimal
+by its own criteria. Neither setting is left in `hardening/config.json`, because
+a config key that demonstrably does nothing is worse than no key at all. Both are
+recorded there as comments.
+
+It is left in place, with the reasoning stated rather than the number buried:
+`max_fanout` is a proxy design rule for slew and capacitance, and both quantities
+it stands in for are clean at every corner (max slew 0, max cap 0). The tree it
+produced has 33 ps of skew and 0.68 to 0.72 ns of latency, and setup and hold
+both close with margin. It is also worth noting that Tiny Tapeout's own flow runs
+its own CTS with its own settings and the harness supplies the clock, so this
+particular clock tree is not what a shuttle would build anyway.
+
+### Ring oscillator frequency from Liberty data
+
+`scripts/ring_freq.py` derives what to expect from the two rings rather than
+guessing. For an N stage ring every node toggles once per half period, so
+`T = 2 * (t_nand + (N-1) * t_inv)`, with each stage driving exactly one identical
+stage, so the load is that cell's own input capacitance. Delay comes from
+bilinear interpolation of the Liberty 7x7 tables at that load, with the input
+slew solved by fixed point so it is self consistent with the output slew the
+previous stage produces rather than assumed.
+
+| corner | t_inv | t_nand2 | 5 stage | 7 stage | beat | periods per sample at /8 |
+| --- | --- | --- | --- | --- | --- | --- |
+| slow 1.08 V 125 C | 38.3 ps | 57.1 ps | 2376 MHz | 1742 MHz | 634 MHz | 554 |
+| typ 1.20 V 25 C | 25.1 ps | 35.6 ps | 3677 MHz | 2686 MHz | 991 MHz | 854 |
+| fast 1.65 V -40 C | 14.0 ps | 18.3 ps | 6741 MHz | 4898 MHz | 1843 MHz | 1557 |
+
+**This is a hand calculation, not a measurement, and it cannot be one.** A ring
+oscillator's frequency depends on routed parasitics, the local supply, the die
+temperature and the process corner of the individual part, and its entire purpose
+is to jitter. Interconnect is not included here, so real rings will be slower
+than every figure in that table.
+
+It is worth computing anyway, because the conclusion survives a large error bar.
+Even at the slow corner, and even if routing halved these frequencies, the
+default divide-by-8 sample rate gives hundreds of oscillator periods per sample
+for jitter to accumulate over, and the two rings are hundreds of MHz apart so
+their XOR is not a near-static beat. Sampling faster than the jitter accumulates
+is the usual way a ring oscillator TRNG fails, which is what `SAMP_FAST` exists
+to let a bench adjust once the real frequency is known.
+
+---
+
+## 8. Known limitations
 
 - **No silicon entropy measurement exists here.** Everything statistical in this
   repository was measured with a Python pseudorandom generator driven into
-  `ENT_IN`. The ring oscillator path is verified structurally only.
+  `ENT_IN`. The ring oscillator path is verified structurally only, and its
+  frequency table is a Liberty hand calculation with no interconnect.
 - **The conditioner is linear.** Sixteen consecutive output bits reveal the whole
   state. Not a CSPRNG.
 - **The ring oscillator sample rate is a guess until measured.** `SAMP_FAST` and
@@ -590,8 +749,17 @@ is a separate `make -C test capture` target for that reason, about 15 minutes fo
   parameters, so `make -B GATES=yes` exercises the ring oscillator path. The VGA
   timing and reset tests are meaningful there; the entropy pipeline tests are not,
   because they need the deterministic source.
-- **The `gds`, `docs` and `fpga` workflows are unvalidated here.** They need Tiny
-  Tapeout's own actions and shuttle containers. Only the `test` workflow has been
-  run.
+- **The `gds`, `docs` and `fpga` workflows are unvalidated here**, because they
+  need Tiny Tapeout's own actions and shuttle containers. The hardening flow the
+  `gds` workflow wraps has been run locally at the same version on the same PDK,
+  which is evidence the tile hardens, not evidence it would be accepted by a
+  shuttle. Precheck and harness integration are untested.
+- **The hardening die is not Tiny Tapeout's tile geometry.** 167 x 216 um is the
+  1x2 footprint, which is the right question to ask of this design, but their
+  harness reserves part of a tile for its own pin frame and routing and this run
+  does not model that. Expect the usable area to be somewhat smaller in their
+  flow.
+- **One max fanout violation remains** on the clock tree root buffer, documented
+  in section 7 with both attempts to remove it.
 - **The FPGA flow needs `SIM_ENTROPY=1`.** Yosys' ice40 target will not synthesise
   a combinational loop.
