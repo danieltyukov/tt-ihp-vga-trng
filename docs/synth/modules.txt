@@ -1,0 +1,775 @@
+===== vga_sync
+
+24. Printing statistics.
+
+=== vga_sync ===
+
+   Number of wires:                113
+   Number of wire bits:            138
+   Number of public wires:          11
+   Number of public wire bits:      36
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                135
+     sg13g2_a21o_1                   1
+     sg13g2_a21oi_1                  9
+     sg13g2_a221oi_1                 1
+     sg13g2_and2_1                   5
+     sg13g2_and3_1                   6
+     sg13g2_and4_1                   3
+     sg13g2_dfrbpq_1                28
+     sg13g2_inv_1                    5
+     sg13g2_nand2_1                  6
+     sg13g2_nand2b_1                 2
+     sg13g2_nand3_1                  4
+     sg13g2_nand3b_1                 3
+     sg13g2_nand4_1                  5
+     sg13g2_nor2_1                  20
+     sg13g2_nor2b_1                  4
+     sg13g2_nor3_1                   7
+     sg13g2_nor4_1                   3
+     sg13g2_o21ai_1                 12
+     sg13g2_or2_1                    2
+     sg13g2_or3_1                    2
+     sg13g2_xnor2_1                  2
+     sg13g2_xor2_1                   5
+
+   Chip area for module '\vga_sync': 2395.008000
+
+===== pat_xor
+
+24. Printing statistics.
+
+=== pat_xor ===
+
+   Number of wires:                 37
+   Number of wire bits:             67
+   Number of public wires:           4
+   Number of public wire bits:      34
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 39
+     sg13g2_a21o_1                   1
+     sg13g2_a21oi_1                  4
+     sg13g2_and2_1                   3
+     sg13g2_nand2_1                  3
+     sg13g2_nand2b_1                 3
+     sg13g2_nor2_1                   3
+     sg13g2_o21ai_1                  3
+     sg13g2_or2_1                    3
+     sg13g2_xnor2_1                  8
+     sg13g2_xor2_1                   8
+
+   Chip area for module '\pat_xor': 433.641600
+
+===== pat_bars
+
+24. Printing statistics.
+
+=== pat_bars ===
+
+   Number of wires:                 40
+   Number of wire bits:             70
+   Number of public wires:           4
+   Number of public wire bits:      34
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 42
+     sg13g2_a21o_1                   1
+     sg13g2_a21oi_1                  1
+     sg13g2_a221oi_1                 1
+     sg13g2_a22oi_1                  2
+     sg13g2_and2_1                   1
+     sg13g2_and3_1                   2
+     sg13g2_inv_1                    1
+     sg13g2_nand2_1                  9
+     sg13g2_nand2b_1                 4
+     sg13g2_nand3_1                  3
+     sg13g2_nand3b_1                 1
+     sg13g2_nand4_1                  1
+     sg13g2_nor2_1                   2
+     sg13g2_nor2b_1                  1
+     sg13g2_nor3_1                   2
+     sg13g2_o21ai_1                  5
+     sg13g2_or2_1                    1
+     sg13g2_or3_1                    1
+     sg13g2_xnor2_1                  1
+     sg13g2_xor2_1                   2
+
+   Chip area for module '\pat_bars': 402.721200
+
+===== pat_sierp
+
+24. Printing statistics.
+
+=== pat_sierp ===
+
+   Number of wires:                 15
+   Number of wire bits:             45
+   Number of public wires:           4
+   Number of public wire bits:      34
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 17
+     sg13g2_a21oi_1                  2
+     sg13g2_a22oi_1                  3
+     sg13g2_and2_1                   2
+     sg13g2_and3_1                   1
+     sg13g2_and4_1                   1
+     sg13g2_inv_1                    2
+     sg13g2_nand2_1                  4
+     sg13g2_nor2_1                   1
+     sg13g2_or2_1                    1
+
+   Chip area for module '\pat_sierp': 152.296200
+
+===== pat_ripple
+
+24. Printing statistics.
+
+=== pat_ripple ===
+
+   Number of wires:                 81
+   Number of wire bits:            111
+   Number of public wires:           4
+   Number of public wire bits:      34
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 81
+     sg13g2_a21o_1                   3
+     sg13g2_a21oi_1                  9
+     sg13g2_a22oi_1                  1
+     sg13g2_and2_1                   4
+     sg13g2_and3_1                   1
+     sg13g2_and4_1                   1
+     sg13g2_nand3_1                  4
+     sg13g2_nand4_1                  1
+     sg13g2_nor2_1                   8
+     sg13g2_nor2b_1                  2
+     sg13g2_o21ai_1                  6
+     sg13g2_or2_1                    2
+     sg13g2_or3_1                    2
+     sg13g2_xnor2_1                 22
+     sg13g2_xor2_1                  15
+
+   Chip area for module '\pat_ripple': 952.522200
+
+===== sine_q
+
+24. Printing statistics.
+
+=== sine_q ===
+
+   Number of wires:                  9
+   Number of wire bits:             16
+   Number of public wires:           2
+   Number of public wire bits:       9
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 11
+     sg13g2_a21oi_1                  2
+     sg13g2_inv_1                    1
+     sg13g2_nor2_1                   1
+     sg13g2_xnor2_1                  3
+     sg13g2_xor2_1                   4
+
+   Chip area for module '\sine_q': 132.451200
+
+===== pat_plasma
+
+24. Printing statistics.
+
+=== pat_plasma ===
+
+   Number of wires:                115
+   Number of wire bits:            145
+   Number of public wires:           4
+   Number of public wire bits:      34
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                115
+     sg13g2_a21o_1                   1
+     sg13g2_a21oi_1                  9
+     sg13g2_and2_1                   4
+     sg13g2_nand2_1                  9
+     sg13g2_nand2b_1                 8
+     sg13g2_nand3_1                  1
+     sg13g2_nor2_1                   8
+     sg13g2_nor2b_1                  6
+     sg13g2_o21ai_1                 11
+     sg13g2_or2_1                    4
+     sg13g2_or3_1                    1
+     sg13g2_xnor2_1                 33
+     sg13g2_xor2_1                  20
+
+   Chip area for module '\pat_plasma': 1308.182400
+
+===== pat_ball
+
+24. Printing statistics.
+
+=== pat_ball ===
+
+   Number of wires:                234
+   Number of wire bits:            276
+   Number of public wires:          11
+   Number of public wire bits:      53
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                251
+     sg13g2_a21o_1                   2
+     sg13g2_a21oi_1                 34
+     sg13g2_a221oi_1                 2
+     sg13g2_a22oi_1                  6
+     sg13g2_and2_1                   3
+     sg13g2_and3_1                   3
+     sg13g2_and4_1                   3
+     sg13g2_dfrbpq_1                22
+     sg13g2_inv_1                   17
+     sg13g2_mux2_1                   1
+     sg13g2_nand2_1                 16
+     sg13g2_nand2b_1                13
+     sg13g2_nand3_1                  4
+     sg13g2_nand3b_1                 4
+     sg13g2_nand4_1                  2
+     sg13g2_nor2_1                  18
+     sg13g2_nor2b_1                 12
+     sg13g2_nor3_1                  10
+     sg13g2_nor4_1                   6
+     sg13g2_o21ai_1                 30
+     sg13g2_or2_1                    2
+     sg13g2_or3_1                    2
+     sg13g2_xnor2_1                 18
+     sg13g2_xor2_1                  21
+
+   Chip area for module '\pat_ball': 3345.526800
+
+===== pat_stars
+
+24. Printing statistics.
+
+=== pat_stars ===
+
+   Number of wires:                 12
+   Number of wire bits:             32
+   Number of public wires:           2
+   Number of public wire bits:      22
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 16
+     sg13g2_inv_1                    1
+     sg13g2_nand3_1                  1
+     sg13g2_nor2_1                   8
+     sg13g2_nor3_1                   4
+     sg13g2_nor4_1                   2
+
+   Chip area for module '\pat_stars': 130.636800
+
+===== pat_rule30
+
+24. Printing statistics.
+
+=== pat_rule30 ===
+
+   Number of wires:                188
+   Number of wire bits:            248
+   Number of public wires:           8
+   Number of public wire bits:      68
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                223
+     sg13g2_a21oi_1                 31
+     sg13g2_a22oi_1                  1
+     sg13g2_and2_1                  34
+     sg13g2_and3_1                  13
+     sg13g2_dfrbpq_1                40
+     sg13g2_inv_1                    3
+     sg13g2_mux2_1                   1
+     sg13g2_mux4_1                  12
+     sg13g2_nand2_1                  7
+     sg13g2_nand2b_1                 2
+     sg13g2_nor2_1                   2
+     sg13g2_nor2b_1                  3
+     sg13g2_nor4_1                   1
+     sg13g2_o21ai_1                 39
+     sg13g2_or2_1                   20
+     sg13g2_or3_1                   13
+     sg13g2_xnor2_1                  1
+
+   Chip area for module '\pat_rule30': 4053.331800
+
+===== pattern_mux
+
+24. Printing statistics.
+
+=== pattern_mux ===
+
+   Number of wires:                811
+   Number of wire bits:            916
+   Number of public wires:          17
+   Number of public wire bits:     122
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                862
+     sg13g2_a21o_1                  18
+     sg13g2_a21oi_1                105
+     sg13g2_a221oi_1                 9
+     sg13g2_a22oi_1                 32
+     sg13g2_and2_1                  58
+     sg13g2_and3_1                  16
+     sg13g2_and4_1                   3
+     sg13g2_dfrbpq_1                62
+     sg13g2_inv_1                   35
+     sg13g2_mux2_1                   3
+     sg13g2_nand2_1                 62
+     sg13g2_nand2b_1                35
+     sg13g2_nand3_1                 26
+     sg13g2_nand3b_1                 7
+     sg13g2_nand4_1                  8
+     sg13g2_nor2_1                  43
+     sg13g2_nor2b_1                 23
+     sg13g2_nor3_1                  14
+     sg13g2_nor4_1                  13
+     sg13g2_o21ai_1                115
+     sg13g2_or2_1                   32
+     sg13g2_or3_1                   16
+     sg13g2_or4_1                    4
+     sg13g2_xnor2_1                 78
+     sg13g2_xor2_1                  45
+
+   Chip area for module '\pattern_mux': 11063.001600
+
+===== ring_osc
+
+24. Printing statistics.
+
+=== $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 ===
+
+   Number of wires:                  3
+   Number of wire bits:              3
+   Number of public wires:           3
+   Number of public wire bits:       3
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_nand2_1                  1
+
+   Chip area for module '$paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011': 7.257600
+
+=== $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 ===
+
+   Number of wires:                  2
+   Number of wire bits:              2
+   Number of public wires:           2
+   Number of public wire bits:       2
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_inv_1                    1
+
+   Chip area for module '$paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011': 5.443200
+
+=== ring_osc ===
+
+   Number of wires:                  3
+   Number of wire bits:              7
+   Number of public wires:           3
+   Number of public wire bits:       7
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  5
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
+
+   Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
+   Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
+
+=== design hierarchy ===
+
+   ring_osc                          1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
+
+   Number of wires:                 14
+   Number of wire bits:             18
+   Number of public wires:          14
+   Number of public wire bits:      18
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  5
+     sg13g2_inv_1                    4
+     sg13g2_nand2_1                  1
+
+   Chip area for top module '\ring_osc': 29.030400
+
+===== entropy_source
+
+24. Printing statistics.
+
+=== $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010 ===
+
+   Number of wires:                  3
+   Number of wire bits:              3
+   Number of public wires:           3
+   Number of public wire bits:       3
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_nand2_1                  1
+
+   Chip area for module '$paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010': 7.257600
+
+=== $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 ===
+
+   Number of wires:                  3
+   Number of wire bits:              3
+   Number of public wires:           3
+   Number of public wire bits:       3
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_nand2_1                  1
+
+   Chip area for module '$paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011': 7.257600
+
+=== $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010 ===
+
+   Number of wires:                  2
+   Number of wire bits:              2
+   Number of public wires:           2
+   Number of public wire bits:       2
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_inv_1                    1
+
+   Chip area for module '$paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010': 5.443200
+
+=== $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 ===
+
+   Number of wires:                  2
+   Number of wire bits:              2
+   Number of public wires:           2
+   Number of public wire bits:       2
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_inv_1                    1
+
+   Chip area for module '$paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011': 5.443200
+
+=== entropy_source ===
+
+   Number of wires:                 22
+   Number of wire bits:             34
+   Number of public wires:          13
+   Number of public wire bits:      25
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 28
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010      1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010      6
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
+     sg13g2_a21o_1                   1
+     sg13g2_and2_1                   3
+     sg13g2_and3_1                   1
+     sg13g2_dfrbpq_1                 5
+     sg13g2_nand2b_1                 1
+     sg13g2_nand3_1                  1
+     sg13g2_nor2b_1                  1
+     sg13g2_xor2_1                   3
+
+   Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
+   Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
+   Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010 is unknown!
+   Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010 is unknown!
+
+   Chip area for module '\entropy_source': 368.323200
+
+=== design hierarchy ===
+
+   entropy_source                    1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010      1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010      6
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
+
+   Number of wires:                 48
+   Number of wire bits:             60
+   Number of public wires:          39
+   Number of public wire bits:      51
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 28
+     sg13g2_a21o_1                   1
+     sg13g2_and2_1                   3
+     sg13g2_and3_1                   1
+     sg13g2_dfrbpq_1                 5
+     sg13g2_inv_1                   10
+     sg13g2_nand2_1                  2
+     sg13g2_nand2b_1                 1
+     sg13g2_nand3_1                  1
+     sg13g2_nor2b_1                  1
+     sg13g2_xor2_1                   3
+
+   Chip area for top module '\entropy_source': 437.270400
+
+===== von_neumann
+
+24. Printing statistics.
+
+=== von_neumann ===
+
+   Number of wires:                 21
+   Number of wire bits:             21
+   Number of public wires:           8
+   Number of public wire bits:       8
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 17
+     sg13g2_a21oi_1                  1
+     sg13g2_and2_1                   1
+     sg13g2_dfrbpq_1                 4
+     sg13g2_inv_1                    2
+     sg13g2_mux2_1                   1
+     sg13g2_nand2_1                  1
+     sg13g2_nand4_1                  1
+     sg13g2_nor2_1                   1
+     sg13g2_nor2b_1                  1
+     sg13g2_nor3_1                   1
+     sg13g2_o21ai_1                  1
+     sg13g2_xnor2_1                  2
+
+   Chip area for module '\von_neumann': 324.777600
+
+===== lfsr_whitener
+
+24. Printing statistics.
+
+=== lfsr_whitener ===
+
+   Number of wires:                 36
+   Number of wire bits:             51
+   Number of public wires:           6
+   Number of public wire bits:      21
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 46
+     sg13g2_a21oi_1                  1
+     sg13g2_and2_1                   9
+     sg13g2_and3_1                   1
+     sg13g2_dfrbpq_1                16
+     sg13g2_nand2_1                  2
+     sg13g2_nand2b_1                 7
+     sg13g2_nor3_1                   1
+     sg13g2_nor4_1                   3
+     sg13g2_o21ai_1                  2
+     sg13g2_or3_1                    1
+     sg13g2_xnor2_1                  3
+
+   Chip area for module '\lfsr_whitener': 1081.382400
+
+===== health_monitor
+
+24. Printing statistics.
+
+=== health_monitor ===
+
+   Number of wires:                150
+   Number of wire bits:            168
+   Number of public wires:          15
+   Number of public wire bits:      33
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                159
+     sg13g2_a21oi_1                 24
+     sg13g2_a22oi_1                  1
+     sg13g2_and2_1                   5
+     sg13g2_and3_1                   2
+     sg13g2_dfrbpq_1                24
+     sg13g2_inv_1                    8
+     sg13g2_mux2_1                   1
+     sg13g2_nand2_1                 26
+     sg13g2_nand2b_1                 4
+     sg13g2_nand3_1                  5
+     sg13g2_nor2_1                  18
+     sg13g2_nor2b_1                  8
+     sg13g2_nor3_1                   8
+     sg13g2_nor4_1                   2
+     sg13g2_o21ai_1                 12
+     sg13g2_or2_1                    1
+     sg13g2_xnor2_1                  5
+     sg13g2_xor2_1                   5
+
+   Chip area for module '\health_monitor': 2367.754200
+
+===== trng
+
+24. Printing statistics.
+
+=== $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010 ===
+
+   Number of wires:                  3
+   Number of wire bits:              3
+   Number of public wires:           3
+   Number of public wire bits:       3
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_nand2_1                  1
+
+   Chip area for module '$paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010': 7.257600
+
+=== $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 ===
+
+   Number of wires:                  3
+   Number of wire bits:              3
+   Number of public wires:           3
+   Number of public wire bits:       3
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_nand2_1                  1
+
+   Chip area for module '$paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011': 7.257600
+
+=== $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010 ===
+
+   Number of wires:                  2
+   Number of wire bits:              2
+   Number of public wires:           2
+   Number of public wire bits:       2
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_inv_1                    1
+
+   Chip area for module '$paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010': 5.443200
+
+=== $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 ===
+
+   Number of wires:                  2
+   Number of wire bits:              2
+   Number of public wires:           2
+   Number of public wire bits:       2
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     sg13g2_inv_1                    1
+
+   Chip area for module '$paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011': 5.443200
+
+=== trng ===
+
+   Number of wires:                211
+   Number of wire bits:            256
+   Number of public wires:          28
+   Number of public wire bits:      73
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                245
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010      1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010      6
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
+     sg13g2_a21o_1                   2
+     sg13g2_a21oi_1                 24
+     sg13g2_a221oi_1                 1
+     sg13g2_a22oi_1                  1
+     sg13g2_and2_1                  14
+     sg13g2_and3_1                   4
+     sg13g2_dfrbpq_1                49
+     sg13g2_inv_1                    9
+     sg13g2_mux2_1                   2
+     sg13g2_nand2_1                 28
+     sg13g2_nand2b_1                11
+     sg13g2_nand3_1                  5
+     sg13g2_nand3b_1                 1
+     sg13g2_nor2_1                  24
+     sg13g2_nor2b_1                  4
+     sg13g2_nor3_1                   8
+     sg13g2_nor4_1                   7
+     sg13g2_o21ai_1                 18
+     sg13g2_or2_1                    1
+     sg13g2_or4_1                    1
+     sg13g2_xnor2_1                 15
+     sg13g2_xor2_1                   4
+
+   Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
+   Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011 is unknown!
+   Area for cell type $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010 is unknown!
+   Area for cell type $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010 is unknown!
+
+   Chip area for module '\trng': 4115.021400
+
+=== design hierarchy ===
+
+   trng                              1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000010      1
+     $paramod\ring_gate\SIM_DELAY=s32'00000000000000000000000000000011      1
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000010      6
+     $paramod\ring_inv\SIM_DELAY=s32'00000000000000000000000000000011      4
+
+   Number of wires:                237
+   Number of wire bits:            282
+   Number of public wires:          54
+   Number of public wire bits:      99
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                245
+     sg13g2_a21o_1                   2
+     sg13g2_a21oi_1                 24
+     sg13g2_a221oi_1                 1
+     sg13g2_a22oi_1                  1
+     sg13g2_and2_1                  14
+     sg13g2_and3_1                   4
+     sg13g2_dfrbpq_1                49
+     sg13g2_inv_1                   19
+     sg13g2_mux2_1                   2
+     sg13g2_nand2_1                 30
+     sg13g2_nand2b_1                11
+     sg13g2_nand3_1                  5
+     sg13g2_nand3b_1                 1
+     sg13g2_nor2_1                  24
+     sg13g2_nor2b_1                  4
+     sg13g2_nor3_1                   8
+     sg13g2_nor4_1                   7
+     sg13g2_o21ai_1                 18
+     sg13g2_or2_1                    1
+     sg13g2_or4_1                    1
+     sg13g2_xnor2_1                 15
+     sg13g2_xor2_1                   4
+
+   Chip area for top module '\trng': 4183.968600
+
