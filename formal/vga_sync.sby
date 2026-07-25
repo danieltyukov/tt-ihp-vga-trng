@@ -1,0 +1,41 @@
+# Formal verification of the sync generator, as a one step induction.
+#
+#   base   forces a reset and proves the counters land on (0, 0).
+#   step   assumes only that the counters start somewhere legal, and proves that
+#          one clock preserves legality and that every output property holds.
+#          Holds from any legal state, not only from states a short trace out of
+#          reset can reach, so base and step together are an unbounded proof.
+#   cover  non-vacuity: both sync pulses, the line wrap and the last visible pixel
+#          are reachable. Uses the step formulation, so each is one clock away
+#          instead of several hundred.
+#
+# The obvious alternative, bounded checking from reset deep enough to reach the
+# horizontal sync window at x = 656, was tried first. z3 4.8.12 was taking ten
+# seconds per step by step 220 and would not have finished. This formulation
+# proves more, in seconds. Recorded because the choice is not arbitrary.
+[tasks]
+base
+step
+cover
+
+[options]
+base: mode bmc
+base: depth 4
+step: mode bmc
+step: depth 3
+cover: mode cover
+cover: depth 3
+
+[engines]
+smtbmc --nopresat z3
+
+[script]
+base: read -formal -DBASE_CASE vga_sync.v
+base: read -formal -DBASE_CASE vga_sync_fv.v
+~base: read -formal vga_sync.v
+~base: read -formal vga_sync_fv.v
+prep -top vga_sync_fv -flatten
+
+[files]
+../src/vga_sync.v
+vga_sync_fv.v

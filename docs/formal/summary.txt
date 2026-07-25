@@ -1,0 +1,27 @@
+SymbiYosys formal verification
+solver: Z3 version 4.8.12 - 64 bit
+
+== von_neumann.sby ==
+SBY 21:17:22 [von_neumann_cover] summary: engine_0 (smtbmc --nopresat z3) returned pass
+SBY 21:17:22 [von_neumann_cover] DONE (PASS, rc=0)
+SBY 21:17:22 [von_neumann_bmc] summary: engine_0 (smtbmc --nopresat z3) returned pass
+SBY 21:17:22 [von_neumann_bmc] summary: engine_0 did not produce any traces
+SBY 21:17:22 [von_neumann_bmc] DONE (PASS, rc=0)
+== vga_sync.sby ==
+SBY 21:17:23 [vga_sync_cover] summary: engine_0 (smtbmc --nopresat z3) returned pass
+SBY 21:17:23 [vga_sync_cover] DONE (PASS, rc=0)
+SBY 21:17:23 [vga_sync_step] summary: engine_0 (smtbmc --nopresat z3) returned pass
+SBY 21:17:23 [vga_sync_step] summary: engine_0 did not produce any traces
+SBY 21:17:23 [vga_sync_step] DONE (PASS, rc=0)
+SBY 21:17:35 [vga_sync_base] summary: engine_0 (smtbmc --nopresat z3) returned pass
+SBY 21:17:35 [vga_sync_base] summary: engine_0 did not produce any traces
+SBY 21:17:35 [vga_sync_base] DONE (PASS, rc=0)
+
+== mutation check: the proofs must fail on a broken design ==
+-- mutation 1: line_end fires one pixel early
+   caught, as required
+-- mutation 2: the debiaser emits the second bit of the pair
+   caught, as required
+sources restored
+
+formal: all tasks passed and both mutations were caught

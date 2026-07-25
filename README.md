@@ -17,6 +17,7 @@ tests. Output goes straight to a TinyVGA PMOD.
 | Timing | setup +17.56 ns post route at 39.722 ns, all three corners. Fmax 169 MHz at the slow corner |
 | External hardware | [TinyVGA PMOD](https://github.com/mole99/tiny-vga) |
 | Regression | 11 cocotb tests, 2.5 million pixels compared, all passing |
+| Formal | debiaser symmetry and sync counter invariants proved with SymbiYosys, mutation checked |
 
 ![Routed layout](docs/img/layout.png)
 
@@ -389,9 +390,10 @@ make capture  # 64 further model-verified frames for the animated images, ~16 mi
 make sta      # OpenSTA timing closure across three real IHP corners
 make harden   # LibreLane hardening to GDS, DRC and LVS signoff, layout render
 make fpga     # yosys + nextpnr-ice40 + icepack for an ICE40UP5K
+make formal   # SymbiYosys proofs of the debiaser and sync generator
 make ring-freq # ring oscillator frequency from the Liberty delay tables
 make images   # regenerate every PNG and GIF in docs/img from simulation output
-make check    # lint + ring + test + synth
+make check    # lint + ring + formal + test + synth
 ```
 
 Requires `iverilog`, `verilator`, `yosys` and Python 3.11+ for the simulation and
@@ -438,6 +440,42 @@ pipeline tests are not, because they need the deterministic source.
 
 Plus `test/tb_ring.v` with 12 structural checks on the ring oscillator path, and
 `test/capture.py` with 64 further model-verified frames.
+
+### Formal verification
+
+`make formal` runs SymbiYosys on the two blocks where a proof is worth more than a
+test:
+
+| target | what is proved | scope |
+| --- | --- | --- |
+| `von_neumann` | nothing is emitted without a completed pair; **01 emits 0, 10 emits 1, equal pairs emit nothing**; two consecutive output strobes are impossible | bounded, 40 cycles from reset |
+| `vga_sync` | counters stay inside 0..799 and 0..524; syncs are low only inside their windows and never inside the visible area; `active` matches the visible window exactly; `line_end` and `frame_end` only at the ends; the counters advance by exactly one and wrap | unbounded, base case plus one step induction |
+
+The debiaser property is the one that matters. The README's unbiasedness claim
+rests on P(01) = P(10) for independent samples, so a debiaser that emits 0 on
+exactly 01 and 1 on exactly 10 is unbiased by construction. Checking that against
+two streams shows it worked twice. Proving the symmetry shows it always holds. The
+statistical step still needs the input samples to be independent, which is an
+assumption about the noise source that no tool can prove.
+
+The sync generator is structured as a real induction: a base task forces a reset
+and proves the counters land on (0,0), and a step task assumes only that they
+start somewhere legal and proves one clock preserves every property. That is
+unbounded, and it is also far cheaper than bounded checking from reset, which
+needs 656 cycles just to reach the sync window and was taking ten seconds per step
+at step 220.
+
+`make formal` also runs a **mutation check**, because a proof that passes on a
+broken design proves nothing: it injects two specific bugs, a `line_end` that
+fires one pixel early and a debiaser that emits the second bit of the pair, and
+fails if either proof still passes. Both are caught.
+
+Two honest notes. The debiaser result is bounded rather than unbounded because
+z3 4.8.12, the version available here, does not converge on the induction step
+for that miter, and no newer solver was installable (`yices2` is not packaged,
+`boolector` is the 2012 release, `cvc5` would not install). And these are two
+blocks, not the whole tile: the pattern generators and the health monitor are
+covered by simulation only.
 
 ## CI jobs and what they need
 
@@ -530,6 +568,9 @@ hardening/
   constraints.sdc                 real timing constraints, not the fallback
 fpga/
   fpga_top.v                      iCE40 demo wrapper, SIM_ENTROPY=1
+formal/
+  von_neumann_fv.v, *.sby         debiaser symmetry proof
+  vga_sync_fv.v, *.sby            sync counter invariants, base plus step
 docs/
   info.md                         shuttle datasheet
   design.md                       area budget, pattern costs, entropy design
@@ -537,6 +578,7 @@ docs/
   sta/                            OpenSTA per corner reports, ring frequency
   hardening/                      LibreLane metrics and signoff
   fpga/                           iCE40 utilisation and timing
+  formal/                         SymbiYosys task results
   img/                            hand written SVGs, generated PNGs and GIFs,
                                   and the routed layout render
 ```

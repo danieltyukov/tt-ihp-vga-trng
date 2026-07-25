@@ -35,3 +35,11 @@ test/results_capture.xml
 
 # LibreLane hardening run directories (only the extracted reports are committed)
 runs/
+
+# SymbiYosys task directories
+formal/*_bmc/
+formal/*_base/
+formal/*_step/
+formal/*_cover/
+formal/von_neumann/
+formal/vga_sync/

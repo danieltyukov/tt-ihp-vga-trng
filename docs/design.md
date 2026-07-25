@@ -557,6 +557,54 @@ what makes pixel exact frame comparison possible at all.
 | `test_health_sticky` | flag survives 256 healthy samples, gates the output on the 126 clocks where it mattered, clears on demand, output ungates | 330 samples |
 | `test_trng_statistics` | bias within a documented bound, runs distribution sane, byte chi-square under bound, no health test fires on fair input | 262 144 bits |
 
+### Formal verification
+
+Two blocks are proved rather than only tested, chosen because in both cases a
+proof says something a test structurally cannot.
+
+**The debiaser.** Its reason to exist is a symmetry argument: for independent
+samples P(01) = P(10) = p(1-p) whatever p is, so a debiaser that emits 0 on
+exactly 01 and 1 on exactly 10 is unbiased by construction. `test_von_neumann`
+shows that held for two particular streams. `formal/von_neumann_fv.v` asserts the
+symmetry itself, along with "nothing is emitted without a completed pair" and
+"two consecutive output strobes are impossible", and SymbiYosys checks them
+against every input sequence up to 40 cycles from reset. The state machine has a
+period of two samples, so 40 cycles covers every pairing, alignment and discard
+case many times over. The statistical conclusion still needs the input samples to
+be independent, which is an assumption about the noise source and not something
+any tool can prove about a debiaser.
+
+**The sync generator.** `test_vga_timing` measures one frame and asserts every
+interval, which catches a wrong constant. What it cannot catch is a counter that
+only misbehaves from a state one captured frame never visits, and on a VGA output
+that means a monitor that loses lock. `formal/vga_sync_fv.v` proves the counters
+stay inside 0..799 and 0..524, that the syncs are low only inside their windows
+and never inside the visible area, that `active` matches the visible window
+exactly, that `line_end` and `frame_end` fire only at the ends, and that the
+counters advance by exactly one and wrap correctly.
+
+This one is structured as a genuine induction rather than a bounded check: a
+`base` task forces a reset and proves the counters land on (0, 0), and a `step`
+task assumes only that they start somewhere legal and proves one clock preserves
+every property. Together those are unbounded. It is also much cheaper than the
+obvious alternative: bounded checking from reset needs 656 cycles just to reach
+the horizontal sync window, and z3 was taking ten seconds per step by step 220.
+
+**Mutation checking.** A proof that passes on a broken design proves nothing, so
+`make formal` injects two specific bugs and fails if either proof still passes:
+a `line_end` that fires one pixel early, and a debiaser that emits the second bit
+of the pair instead of the first. Both are caught, and the sources are restored
+afterwards.
+
+Two limitations, stated because they matter. The debiaser result is bounded rather
+than unbounded: z3 4.8.12 is the version available here and it does not converge
+on the induction step for that property, and no newer solver could be installed
+(`yices2` is not packaged, `boolector` is the 2012 1.5 release, `cvc5` failed to
+install). Writing the same property inside a single module proves by induction in
+one second, so this is a solver limitation and not a statement about the design.
+And these are two blocks out of the design: the pattern generators, the health
+monitor and the conditioner are covered by simulation only.
+
 Plus, outside cocotb:
 
 - `test/tb_ring.v`, 12 structural checks on the ring oscillator path: resolves out
@@ -570,6 +618,8 @@ Plus, outside cocotb:
 - `make lint`, Verilator `-Wall` with zero warnings.
 - `make synth`, which fails the build on any blackbox, any inferred latch, or any
   ring oscillator stage lost to the optimiser.
+- `make formal`, SymbiYosys proofs of the debiaser and the sync generator, with a
+  mutation check that both proofs actually catch injected bugs.
 - `scripts/check_area.py`, run by the CI synth job, which compares a fresh area
   report against the committed one within 2% and re-derives the required tile
   count from the measured area, so `tiles` in `info.yaml` cannot drift away from

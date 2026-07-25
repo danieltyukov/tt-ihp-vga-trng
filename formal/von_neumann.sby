@@ -1,0 +1,37 @@
+# Formal verification of the von Neumann debiaser.
+#
+#   bmc    bounded model check: no input sequence of up to `depth` cycles from
+#          reset can violate any property. The debiaser's state machine has a
+#          period of two input samples, so 40 cycles covers every pairing,
+#          alignment and discard case many times over.
+#   cover  proves the properties are not vacuous: the solver must exhibit an
+#          output of 0, an output of 1, and both discard cases.
+#
+# Not `mode prove`. k-induction hangs here, and the cause is the solver rather
+# than the design: z3 4.8.12, which is what this machine has, does not converge
+# on the induction step even after flattening, while the identical property
+# written inside a single module proves by induction in one second. Newer solvers
+# are not available in this environment (yices2 is not packaged, boolector is the
+# 2012 1.5 release, cvc5 would not install). Recorded rather than papered over:
+# what is claimed below is a bounded proof, not an unbounded one.
+[tasks]
+bmc
+cover
+
+[options]
+bmc: mode bmc
+bmc: depth 40
+cover: mode cover
+cover: depth 12
+
+[engines]
+smtbmc --nopresat z3
+
+[script]
+read -formal von_neumann.v
+read -formal von_neumann_fv.v
+prep -top von_neumann_fv -flatten
+
+[files]
+../src/von_neumann.v
+von_neumann_fv.v

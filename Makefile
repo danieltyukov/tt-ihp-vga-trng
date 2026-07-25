@@ -10,6 +10,7 @@
 #   make sta      OpenSTA timing closure across three real IHP corners
 #   make harden   LibreLane hardening to GDS, DRC and LVS signoff, layout render
 #   make fpga     yosys + nextpnr-ice40 + icepack for an ICE40UP5K
+#   make formal   SymbiYosys proofs of the debiaser and the sync generator
 #   make ring-freq ring oscillator frequency from the Liberty delay tables
 #   make images   regenerate every PNG and GIF in docs/img from sim output
 #   make check    lint + ring + test + synth
@@ -24,7 +25,7 @@ PY      := $(VENV)/bin/python
 PIP     := $(VENV)/bin/pip
 VENV_BIN := $(abspath $(VENV))/bin
 
-.PHONY: all venv test lint ring synth capture sta harden fpga ring-freq images check clean
+.PHONY: all venv test lint ring synth capture sta harden fpga formal ring-freq images check clean
 
 all: check
 
@@ -66,6 +67,10 @@ harden:
 fpga:
 	./scripts/run_fpga.sh
 
+# SymbiYosys proofs, plus a mutation check that the proofs actually catch bugs.
+formal:
+	./scripts/run_formal.sh
+
 ring-freq:
 	python3 scripts/ring_freq.py
 
@@ -78,7 +83,7 @@ capture: venv
 images: venv
 	$(PY) scripts/make_images.py
 
-check: lint ring test synth
+check: lint ring formal test synth
 
 clean:
 	$(MAKE) -C test clean || true
