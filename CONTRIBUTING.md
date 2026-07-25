@@ -272,8 +272,12 @@ Verilog: `` `default_nettype none `` at the top of every file, one module per
 file, snake_case, a header comment that explains why the module is the way it is
 rather than restating what the code does. Zero `verilator --lint-only -Wall`
 warnings, including unused signal warnings, which the existing files silence with
-an explicit `wire _unused = &{...}` rather than by disabling the check. No
-inferred latches: `make synth` fails on one.
+an explicit `wire _unused = &{...}` rather than by disabling the check. Every
+`lint_off` in `src/` is in one of the three ring oscillator files and carries a
+one line reason next to it: `UNOPTFLAT` because the combinational cycle is the
+design, and `UNUSEDPARAM` because `SIM_DELAY` is referenced only inside the
+`` `ifdef SIM `` branch. A new one needs the same standard of justification. No
+inferred latches either: `make synth` fails on one.
 
 Python: the standard library plus what is already in `test/requirements.txt`.
 A new dependency needs a reason in the pull request.
