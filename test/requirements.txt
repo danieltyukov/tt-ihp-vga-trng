@@ -1,6 +1,6 @@
 cocotb==2.0.1
 pytest==8.4.2
 numpy==2.3.3
-pillow==11.3.0
+pillow==12.3.0
 matplotlib==3.10.6
 pyyaml==6.0.2
